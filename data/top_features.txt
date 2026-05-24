@@ -1,0 +1,15 @@
+home_win_prob
+away_win_prob
+squad_value_ratio
+log_squad_value_ratio
+draw_prob
+home_squad_value
+away_avg_player_value
+squad_value_diff
+home_roll_xg_against
+home_roll_xg_diff
+net_xg_diff
+home_avg_player_value
+home_roll_xg_for
+away_roll_xg_for
+net_goal_diff
