@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(python -c \"import soccerdata\")",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(python3 src/feature_engineering_player.py)",
+      "Bash(python3 src/feature_selection_player.py)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

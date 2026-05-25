@@ -119,6 +119,14 @@ def load_player_match() -> pd.DataFrame:
     else:
         df["pos_primary"] = "MF"
 
+    # Normalise FBref team names to match Understat spelling
+    team_name_map = {
+        "Nîmes":              "Nimes",
+        "Paris Saint-Germain": "Paris Saint Germain",
+        "Saint-Étienne":      "Saint-Etienne",
+    }
+    df["team"] = df["team"].replace(team_name_map)
+
     return df.sort_values(["player", "date"]).reset_index(drop=True)
 
 
@@ -279,11 +287,21 @@ def main() -> None:
     print("Joining player features onto match frame ...")
     out = join_to_matches(matches, side_df)
 
-    # Report coverage
+    # Drop rows where player rolling features are null (cold-start matches)
+    before = len(out)
+    out = out.dropna(subset=["home_pl_sh_p90", "away_pl_sh_p90"]).reset_index(drop=True)
+    print(f"\n  Dropped {before - len(out)} cold-start rows with null player features")
+    print(f"  Remaining: {len(out):,} matches")
+
     pl_cols = [c for c in out.columns if c.startswith(("home_pl_", "away_pl_", "net_pl_"))]
-    print(f"\n  Player feature columns added: {len(pl_cols)}")
-    print("  Missing value counts:")
-    print(out[pl_cols].isnull().sum().to_string())
+    print(f"\n  Player feature columns: {len(pl_cols)}")
+    remaining_nulls = out[pl_cols].isnull().sum()
+    remaining_nulls = remaining_nulls[remaining_nulls > 0]
+    if len(remaining_nulls):
+        print("  Remaining nulls:")
+        print(remaining_nulls.to_string())
+    else:
+        print("  No remaining nulls in player features.")
 
     out.to_csv(OUT_PATH, index=False)
     print(f"\nSaved {len(out):,} rows × {len(out.columns)} columns → {OUT_PATH}")
