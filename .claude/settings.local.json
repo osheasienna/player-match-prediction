@@ -5,7 +5,9 @@
       "Bash(python -c ' *)",
       "Bash(python3 src/feature_engineering_player.py)",
       "Bash(python3 src/feature_selection_player.py)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(grep -v \"^fbref$\")",
+      "Bash(grep -v \"^player$\")"
     ]
   }
 }
