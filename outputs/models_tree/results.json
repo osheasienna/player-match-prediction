@@ -1,0 +1,365 @@
+[
+  {
+    "regime": "A_team",
+    "model": "RandomForest",
+    "n_features": 29,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "n_estimators": 800,
+      "min_samples_split": 10,
+      "min_samples_leaf": 8,
+      "max_features": "log2",
+      "max_depth": 10
+    },
+    "cv_log_loss": 1.033475300685764,
+    "test_metrics": {
+      "log_loss": 1.2570830256965995,
+      "brier": 0.6364805845210685,
+      "accuracy": 0.5059523809523809
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    },
+    "feature_importances": {
+      "log_squad_value_ratio": 0.07091579867895159,
+      "squad_value_ratio": 0.06848522028016986,
+      "squad_value_diff": 0.06419419970218178,
+      "home_squad_age": 0.06363236825608914,
+      "home_roll_xg_for": 0.051910247127642244,
+      "away_roll_xg_against": 0.049354257198985306,
+      "home_roll_xg_diff": 0.046273080617175076,
+      "away_roll_xg_diff": 0.04454764930219735,
+      "home_avg_player_value": 0.0416397025129985,
+      "away_roll_xg_for": 0.04106371818233277,
+      "home_squad_value": 0.038989987549919135,
+      "net_xg_diff": 0.03754893764934207,
+      "home_roll_xg_against": 0.035394046044030236,
+      "away_avg_player_value": 0.03316053295902003,
+      "away_squad_value": 0.03259655286530353,
+      "home_roll_goals_against": 0.026873707017411496,
+      "home_roll_goal_diff": 0.024521981447920626,
+      "away_roll_goals_for": 0.024332259616529364,
+      "away_squad_age": 0.02388854157476025,
+      "net_goal_diff": 0.02330411102877301
+    }
+  },
+  {
+    "regime": "A_team",
+    "model": "XGBoost",
+    "n_features": 29,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "subsample": 0.6,
+      "reg_lambda": 2.0,
+      "n_estimators": 200,
+      "min_child_weight": 5,
+      "max_depth": 4,
+      "learning_rate": 0.01,
+      "colsample_bytree": 0.8
+    },
+    "cv_log_loss": 1.0367069661987025,
+    "test_metrics": {
+      "log_loss": 1.0764909261819087,
+      "brier": 0.6425423581256728,
+      "accuracy": 0.4583333333333333
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    },
+    "feature_importances": {
+      "log_squad_value_ratio": 0.0514666885137558,
+      "home_squad_age": 0.0501093752682209,
+      "squad_value_ratio": 0.04837820306420326,
+      "squad_value_diff": 0.04818396642804146,
+      "home_avg_player_value": 0.046956103295087814,
+      "home_squad_value": 0.04484608769416809,
+      "away_squad_value": 0.03811254724860191,
+      "away_avg_player_value": 0.037486154586076736,
+      "away_squad_age": 0.03544365242123604,
+      "away_roll_xg_against": 0.03480866923928261,
+      "home_roll_goals_against": 0.033000264316797256,
+      "home_roll_xg_diff": 0.03274262323975563,
+      "net_xg_diff": 0.03262540325522423,
+      "away_roll_xg_diff": 0.03231325373053551,
+      "away_roll_goals_for": 0.03213312104344368,
+      "home_roll_xg_for": 0.03204531595110893,
+      "home_roll_points": 0.03176993131637573,
+      "home_roll_goal_diff": 0.031399186700582504,
+      "away_roll_points": 0.03051251918077469,
+      "away_roll_xg_for": 0.029169661924242973
+    }
+  },
+  {
+    "regime": "A_team",
+    "model": "Ensemble(RF+XGB)",
+    "n_features": 29,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "weights": {
+        "RF": 0.5,
+        "XGB": 0.5
+      }
+    },
+    "cv_log_loss": 1.0350911334422332,
+    "test_metrics": {
+      "log_loss": 1.058713595257804,
+      "brier": 0.634001068123971,
+      "accuracy": 0.4880952380952381
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    },
+    "feature_importances": {}
+  },
+  {
+    "regime": "B_fbref",
+    "model": "RandomForest",
+    "n_features": 50,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "n_estimators": 200,
+      "min_samples_split": 2,
+      "min_samples_leaf": 4,
+      "max_features": "log2",
+      "max_depth": 10
+    },
+    "cv_log_loss": 1.0340234986812429,
+    "test_metrics": {
+      "log_loss": 1.0591814443446135,
+      "brier": 0.6271944746725433,
+      "accuracy": 0.4880952380952381
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    },
+    "feature_importances": {
+      "home_roll_poss": 0.040472040218830115,
+      "squad_value_ratio": 0.03693222571723439,
+      "log_squad_value_ratio": 0.03675196247675309,
+      "home_squad_age": 0.03566811907277548,
+      "net_poss": 0.034659458932255215,
+      "net_starter_ga90": 0.03405454780944714,
+      "home_minutes_conc": 0.03023042970658407,
+      "net_player_ga90": 0.02813694425905396,
+      "squad_value_diff": 0.02781085721601319,
+      "net_squad_depth": 0.02774989500142357,
+      "away_roll_xg_against": 0.02658111338380127,
+      "home_player_ga90": 0.02616586273886105,
+      "home_squad_depth": 0.025177515789904122,
+      "home_roll_xg_for": 0.025027329683196375,
+      "home_roll_xg_diff": 0.023367071622462304,
+      "home_starter_ga90": 0.02293775534551271,
+      "away_roll_xg_for": 0.022876879419407314,
+      "away_starter_ga90": 0.021875158760207753,
+      "away_player_ga90": 0.02169012739538564,
+      "home_roll_xg_against": 0.021611663844589086
+    }
+  },
+  {
+    "regime": "B_fbref",
+    "model": "XGBoost",
+    "n_features": 50,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "subsample": 0.6,
+      "reg_lambda": 5.0,
+      "n_estimators": 200,
+      "min_child_weight": 5,
+      "max_depth": 8,
+      "learning_rate": 0.01,
+      "colsample_bytree": 0.8
+    },
+    "cv_log_loss": 1.0447588906847358,
+    "test_metrics": {
+      "log_loss": 1.4722142356543737,
+      "brier": 0.638727127796826,
+      "accuracy": 0.48214285714285715
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    },
+    "feature_importances": {
+      "squad_value_diff": 0.03226468339562416,
+      "log_squad_value_ratio": 0.03160977363586426,
+      "home_squad_value": 0.031515080481767654,
+      "squad_value_ratio": 0.03106771409511566,
+      "away_avg_player_value": 0.030904680490493774,
+      "home_squad_age": 0.029452765360474586,
+      "home_roll_poss": 0.023937681689858437,
+      "home_avg_player_value": 0.023712530732154846,
+      "net_poss": 0.023574894294142723,
+      "away_squad_value": 0.02325335331261158,
+      "home_attackers": 0.02284908853471279,
+      "net_starter_ga90": 0.022594749927520752,
+      "home_minutes_conc": 0.022593582049012184,
+      "home_roll_ga_fbref": 0.022311246022582054,
+      "away_roll_ga_fbref": 0.021913772448897362,
+      "home_player_ga90": 0.021661551669239998,
+      "net_player_ga90": 0.02148393727838993,
+      "home_squad_depth": 0.02045554667711258,
+      "away_roll_gf_fbref": 0.02026497945189476,
+      "away_roll_xg_against": 0.020261740311980247
+    }
+  },
+  {
+    "regime": "B_fbref",
+    "model": "Ensemble(RF+XGB)",
+    "n_features": 50,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "weights": {
+        "RF": 0.5,
+        "XGB": 0.5
+      }
+    },
+    "cv_log_loss": 1.0393911946829895,
+    "test_metrics": {
+      "log_loss": 1.0675258701318313,
+      "brier": 0.6274443955577983,
+      "accuracy": 0.4880952380952381
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    },
+    "feature_importances": {}
+  },
+  {
+    "regime": "C_player",
+    "model": "RandomForest",
+    "n_features": 76,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "n_estimators": 600,
+      "min_samples_split": 2,
+      "min_samples_leaf": 4,
+      "max_features": "sqrt",
+      "max_depth": 10
+    },
+    "cv_log_loss": 1.0282904573529645,
+    "test_metrics": {
+      "log_loss": 1.0543740323057993,
+      "brier": 0.6218782455971644,
+      "accuracy": 0.4880952380952381
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    },
+    "feature_importances": {
+      "net_pl_starter_mins": 0.028203980889155433,
+      "home_roll_poss": 0.027364634525498505,
+      "home_squad_age": 0.02610305922784693,
+      "squad_value_ratio": 0.025756123905783978,
+      "away_pl_starter_mins": 0.025359658646120845,
+      "log_squad_value_ratio": 0.024576364937226505,
+      "squad_value_diff": 0.022373030612939274,
+      "net_poss": 0.022116172669322542,
+      "home_minutes_conc": 0.020409017603071143,
+      "net_player_ga90": 0.019784335725650134,
+      "net_starter_ga90": 0.01949084701235976,
+      "away_pl_sot_p90": 0.019403091570822848,
+      "home_pl_depth_sh": 0.018799625442782172,
+      "away_pl_sh_p90": 0.018300465221909017,
+      "home_pl_starter_mins": 0.01788322906811901,
+      "away_roll_xg_against": 0.017277806463586943,
+      "away_starter_ga90": 0.016863713776320455,
+      "home_player_ga90": 0.016787581816896536,
+      "away_pl_gls_p90": 0.01608096474404216,
+      "home_squad_depth": 0.016049574927257157
+    }
+  },
+  {
+    "regime": "C_player",
+    "model": "XGBoost",
+    "n_features": 76,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "subsample": 0.8,
+      "reg_lambda": 5.0,
+      "n_estimators": 200,
+      "min_child_weight": 3,
+      "max_depth": 6,
+      "learning_rate": 0.01,
+      "colsample_bytree": 0.8
+    },
+    "cv_log_loss": 1.0355073976903257,
+    "test_metrics": {
+      "log_loss": 1.0527611951169504,
+      "brier": 0.6246012186926093,
+      "accuracy": 0.5
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    },
+    "feature_importances": {
+      "home_squad_age": 0.025881046429276466,
+      "squad_value_diff": 0.02534920908510685,
+      "squad_value_ratio": 0.023368025198578835,
+      "log_squad_value_ratio": 0.021720146760344505,
+      "home_squad_value": 0.02126150391995907,
+      "home_avg_player_value": 0.020837722346186638,
+      "home_attackers": 0.018392708152532578,
+      "net_pl_starter_mins": 0.017466669902205467,
+      "home_roll_poss": 0.0173251461237669,
+      "away_pl_sh_p90": 0.017049722373485565,
+      "home_minutes_conc": 0.016973301768302917,
+      "net_poss": 0.016287649050354958,
+      "away_pl_starter_mins": 0.016047244891524315,
+      "home_player_ga90": 0.015529308468103409,
+      "away_roll_xg_against": 0.015334844589233398,
+      "away_pl_sot_p90": 0.015253961086273193,
+      "net_starter_ga90": 0.014786791056394577,
+      "net_attackers": 0.014594604261219501,
+      "home_roll_ga_fbref": 0.01430955994874239,
+      "home_squad_depth": 0.014105678535997868
+    }
+  },
+  {
+    "regime": "C_player",
+    "model": "Ensemble(RF+XGB)",
+    "n_features": 76,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "weights": {
+        "RF": 0.5,
+        "XGB": 0.5
+      }
+    },
+    "cv_log_loss": 1.0318989275216452,
+    "test_metrics": {
+      "log_loss": 1.042450882890586,
+      "brier": 0.6180712907478062,
+      "accuracy": 0.5
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    },
+    "feature_importances": {}
+  }
+]
