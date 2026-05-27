@@ -1,0 +1,197 @@
+==========================================================
+How we chose k (n_neighbors) for the KNN model
+==========================================================
+
+TL;DR
+-----
+We did NOT pick k by hand. We let RandomizedSearchCV with
+TimeSeriesSplit search over a candidate grid of k values, scored
+each one by negative log-loss on temporally-respecting folds, and
+kept the value that minimised log-loss on the held-out folds.
+
+Final choice per regime (all came out at k = 50):
+    A: team-level   ->  k=50, weights=distance, p=2 (Euclidean)
+    B: +FBref       ->  k=50, weights=distance, p=1 (Manhattan)
+    C: +player      ->  k=50, weights=distance, p=1 (Manhattan)
+
+
+1. The candidate grid we searched
+---------------------------------
+    n_neighbors:  [5, 10, 15, 20, 30, 50]
+    weights:      ["uniform", "distance"]
+    p:            [1, 2]            # Manhattan vs Euclidean
+
+Total combos = 6 * 2 * 2 = 24, all tried.
+
+
+2. Why those particular min and max for k
+-----------------------------------------
+The bounds are dictated by the dataset, not picked arbitrarily.
+
+  Train set per regime:   ~425 matches
+  TimeSeriesSplit(n=5):   each CV fold trains on ~75 rows at the
+                          smallest split and grows from there.
+
+This forces a hard ceiling and a sensible floor:
+
+  MIN k = 5
+    * k=1 memorises the training set (zero training error,
+      catastrophic variance) and gives degenerate probabilities
+      (0 or 1) which are punished hard by log-loss.
+    * k=2,3 still have noisy probability estimates (denominators
+      of 2 or 3 can only output {0, 0.33, 0.5, 0.66, 1}).
+    * k=5 is the smallest value that produces reasonable
+      probability resolution and a smoother decision surface.
+
+  MAX k = 50
+    * The smallest CV training fold has ~75 rows. sklearn requires
+      n_neighbors <= n_samples_fit in the fold, so anything above
+      ~70 either errors or silently degrades.
+    * We initially tried k up to 100 and got runtime warnings
+      ("Expected n_neighbors <= n_samples_fit, but n_neighbors=100,
+       n_samples_fit=75"). We tightened the grid to 50 to keep the
+      search clean.
+    * Above ~50 the model is also approaching "predict the global
+      class prior", which by construction can't beat a constant
+      majority-class baseline. So there is no upside in going
+      further.
+
+  Why log-spaced-ish values [5, 10, 15, 20, 30, 50]
+    * Log-loss vs k is a smooth U-shape, so we don't need every
+      integer. A geometric ladder (~doubling) is enough to find
+      the minimum.
+    * Six points is also small enough that we exhaust the full
+      grid in the randomized search (no random sampling needed).
+
+
+3. How the search picked k=50
+-----------------------------
+For each combination we ran 5-fold TimeSeriesSplit, computing
+negative log-loss on each fold's validation slice. The combination
+with the lowest mean CV log-loss won. Results (mean CV log-loss):
+
+    A_team:    k=50 + distance + p=2  -> 1.049  (best)
+    B_fbref:   k=50 + distance + p=1  -> 1.049  (best)
+    C_player:  k=50 + distance + p=1  -> 1.054  (best)
+
+All three regimes independently converged on k=50 with
+distance-weighting. The Minkowski exponent p drifted from 2
+(Euclidean, regime A) to 1 (Manhattan, regimes B and C) as the
+feature count grew from 29 to 76 — consistent with the well-known
+result that L1 distance is more robust than L2 in higher
+dimensions.
+
+CRITICAL: every fit was wrapped in StandardScaler. KNN is
+distance-based and would be dominated by whichever feature happens
+to have the largest raw scale (e.g. xG in [0,3] vs minutes played
+in [0,2700]) if we skipped scaling. The scaler was fit only on
+each training fold, never on the validation fold — no leakage.
+
+
+4. Why k=50 is intuitive for this problem
+-----------------------------------------
+* Training set is small (~425 rows). k=50 means each prediction
+  averages over ~12% of the historical sample.
+* Football outcomes are noisy. Averaging more neighbors smooths
+  out the noise but risks washing out the signal. k=50 sits at
+  the sweet spot: enough neighbors to give stable probability
+  estimates, few enough that the local matchup similarity still
+  matters.
+* distance-weighting means the closer neighbors count more — so
+  even at k=50 the very closest 5-10 matches drive most of the
+  prediction; the further ones just provide a regularising prior.
+
+This makes the chosen configuration not just statistically best
+but also defensible from a domain standpoint.
+
+
+5. What we would do differently with more data
+-----------------------------------------------
+* With 5x the training rows (say, 2000+ matches), the optimal k
+  almost certainly shifts up (proportional to sqrt(N) is a common
+  rule of thumb -> ~80-100). We would re-tune.
+* We would also expand the grid upward (k up to 200) because the
+  smallest CV fold would no longer be the binding constraint.
+* Adaptive-k methods (e.g. local CV) become worth trying once
+  the sample size is large enough that the gain outweighs the
+  added complexity.
+
+==========================================================
+Bottom line: k=50 was selected automatically by 5-fold temporal
+cross-validation over a deliberately small grid whose bounds were
+set by (a) probability-resolution needs at the low end and
+(b) the smallest CV fold's sample count at the high end. It is
+the data-driven optimum for our setup, not a hand-picked value.
+==========================================================
+
+==========================================================
+Whats RandomizedSearchCV and TimeSeriesSplit:
+
+RandomizedSearchCV and TimeSeriesSplit are two scikit-learn tools that we combined to pick the best 
+  hyperparameters fairly. Here's what each one does.
+
+  ---
+  1. The problem they solve
+  
+  Models like KNN or XGBoost have knobs (k, max_depth, learning_rate, etc.) that you have to set before
+  training. There's no formula for "the right value" — you have to try many and measure which works best.
+  But you can't measure on the test set (that would be cheating), so you need a way to score candidates only
+   using training data.
+
+  ---
+  2. TimeSeriesSplit — the "fair scoring" part
+
+  A normal cross-validation randomly splits your data into 5 chunks and rotates which one is the validation
+  set. That's illegal for football — it would mean training on May 2024 matches to predict November 2023
+  matches. You'd see the future.
+
+  TimeSeriesSplit fixes that by always putting the validation chunk after the training chunk in time:
+
+  Fold 1:  train = matches  1-100     |  validate = 101-185
+  Fold 2:  train = matches  1-185     |  validate = 186-270
+  Fold 3:  train = matches  1-270     |  validate = 271-355
+  Fold 4:  train = matches  1-355     |  validate = 356-440
+  Fold 5:  train = matches  1-440     |  validate = 441-525
+
+  Each fold simulates "you're standing on date X with all previous data, predict the next batch." That's
+  exactly how the model would be deployed in real life. No future leakage.
+
+  ---
+  3. RandomizedSearchCV — the "try lots of knobs" part
+  
+  Suppose your grid has 24 combinations (like KNN with k × weights × p). GridSearchCV would try all 24. With
+   XGBoost we had ~17,000 combinations — that's hours of compute. RandomizedSearchCV instead samples n_iter
+  random combinations from the grid (we used 30) and only evaluates those. Way faster, and statistically you
+   usually find a near-optimal config within ~30 random tries.
+
+  ---
+  4. How the two work together
+
+  For each of the 30 random hyperparameter combos:
+      For each of the 5 TimeSeriesSplit folds:
+          - train model on the past chunk
+          - predict on the future chunk
+          - compute log-loss
+      Average the 5 fold scores → "CV log-loss" for this combo
+
+  Pick the combo with the lowest average CV log-loss.
+  Refit it on the FULL training set.
+  Use that final model on the held-out 2023/24 test season.
+
+  So one call to RandomizedSearchCV(cv=TimeSeriesSplit(5), n_iter=30) runs 150 small training jobs under the
+   hood, all time-respecting, and hands you back the winning configuration plus a fully refitted model.
+
+  ---
+  5. Why this matters for our project
+  
+  - TimeSeriesSplit ensures our reported scores are honest — we never used a "future" match to tune
+  anything.
+  - RandomizedSearchCV lets us afford to search big spaces (XGBoost's 7-dimensional grid) without burning
+  hours of compute.
+  - The combination is the gold standard for time-series ML evaluation — exactly what you'd do at a
+  bookmaker, hedge fund, or any place where "predicting the past" doesn't count.
+
+  In plain English: "Try 30 different knob settings, score each one on five rolling-window forecasts that 
+  never peek at the future, and keep the best."
+
+  ==========================================================

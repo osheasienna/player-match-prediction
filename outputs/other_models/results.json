@@ -1,0 +1,335 @@
+[
+  {
+    "regime": "A_team",
+    "model": "PolynomialLogReg",
+    "n_features": 29,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "poly__degree": 2,
+      "clf__C": 0.01
+    },
+    "cv_log_loss": 1.1933045918384475,
+    "test_metrics": {
+      "log_loss": 1.075596877296835,
+      "brier": 0.6439255652967869,
+      "accuracy": 0.42857142857142855
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "A_team",
+    "model": "Ridge",
+    "n_features": 29,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__C": 0.006158482110660267
+    },
+    "cv_log_loss": 1.051812730462226,
+    "test_metrics": {
+      "log_loss": 1.0439365098654279,
+      "brier": 0.6281668639086699,
+      "accuracy": 0.4583333333333333
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "A_team",
+    "model": "Lasso",
+    "n_features": 29,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__C": 0.1
+    },
+    "cv_log_loss": 1.0457978080225767,
+    "test_metrics": {
+      "log_loss": 1.049533490743365,
+      "brier": 0.6313357964823715,
+      "accuracy": 0.44047619047619047
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "A_team",
+    "model": "KNN",
+    "n_features": 29,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__weights": "distance",
+      "clf__p": 2,
+      "clf__n_neighbors": 50
+    },
+    "cv_log_loss": 1.0485684696217707,
+    "test_metrics": {
+      "log_loss": 1.0280813539397038,
+      "brier": 0.6156822037887237,
+      "accuracy": 0.49404761904761907
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "A_team",
+    "model": "DecisionTree",
+    "n_features": 29,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__min_samples_split": 20,
+      "clf__min_samples_leaf": 16,
+      "clf__max_depth": 3,
+      "clf__criterion": "gini"
+    },
+    "cv_log_loss": 1.4750022890029775,
+    "test_metrics": {
+      "log_loss": 2.1341939415945865,
+      "brier": 0.6947801865573305,
+      "accuracy": 0.4166666666666667
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "B_fbref",
+    "model": "PolynomialLogReg",
+    "n_features": 50,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "poly__degree": 2,
+      "clf__C": 0.01
+    },
+    "cv_log_loss": 1.4509083434138748,
+    "test_metrics": {
+      "log_loss": 1.3738860608386276,
+      "brier": 0.7956830769184181,
+      "accuracy": 0.39285714285714285
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "B_fbref",
+    "model": "Ridge",
+    "n_features": 50,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__C": 0.003359818286283781
+    },
+    "cv_log_loss": 1.0569274953608105,
+    "test_metrics": {
+      "log_loss": 1.0365069615850007,
+      "brier": 0.6241960449742615,
+      "accuracy": 0.44642857142857145
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "B_fbref",
+    "model": "Lasso",
+    "n_features": 50,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__C": 0.1
+    },
+    "cv_log_loss": 1.051724470638375,
+    "test_metrics": {
+      "log_loss": 1.0516943278136672,
+      "brier": 0.6338331730934,
+      "accuracy": 0.4642857142857143
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "B_fbref",
+    "model": "KNN",
+    "n_features": 50,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__weights": "distance",
+      "clf__p": 1,
+      "clf__n_neighbors": 50
+    },
+    "cv_log_loss": 1.0494624424839478,
+    "test_metrics": {
+      "log_loss": 1.0111154581295594,
+      "brier": 0.60724039154287,
+      "accuracy": 0.5119047619047619
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "B_fbref",
+    "model": "DecisionTree",
+    "n_features": 50,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__min_samples_split": 20,
+      "clf__min_samples_leaf": 4,
+      "clf__max_depth": 3,
+      "clf__criterion": "gini"
+    },
+    "cv_log_loss": 2.5736804400839706,
+    "test_metrics": {
+      "log_loss": 1.9549918279386378,
+      "brier": 0.7099907546238929,
+      "accuracy": 0.39285714285714285
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "C_player",
+    "model": "PolynomialLogReg",
+    "n_features": 76,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "poly__degree": 2,
+      "clf__C": 0.01
+    },
+    "cv_log_loss": 1.49057134858349,
+    "test_metrics": {
+      "log_loss": 1.5039345800670225,
+      "brier": 0.8500871237660581,
+      "accuracy": 0.39880952380952384
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "C_player",
+    "model": "Ridge",
+    "n_features": 76,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__C": 0.003359818286283781
+    },
+    "cv_log_loss": 1.0422451711720193,
+    "test_metrics": {
+      "log_loss": 1.0237536645928482,
+      "brier": 0.6159815661168848,
+      "accuracy": 0.49404761904761907
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "C_player",
+    "model": "Lasso",
+    "n_features": 76,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__C": 0.1
+    },
+    "cv_log_loss": 1.035632887794599,
+    "test_metrics": {
+      "log_loss": 1.031722568920554,
+      "brier": 0.6199728506139827,
+      "accuracy": 0.4880952380952381
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "C_player",
+    "model": "KNN",
+    "n_features": 76,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__weights": "distance",
+      "clf__p": 1,
+      "clf__n_neighbors": 50
+    },
+    "cv_log_loss": 1.0544161086079957,
+    "test_metrics": {
+      "log_loss": 1.0232021811116812,
+      "brier": 0.6146450099740738,
+      "accuracy": 0.5059523809523809
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  },
+  {
+    "regime": "C_player",
+    "model": "DecisionTree",
+    "n_features": 76,
+    "n_train": 425,
+    "n_test": 168,
+    "best_params": {
+      "clf__min_samples_split": 5,
+      "clf__min_samples_leaf": 16,
+      "clf__max_depth": 3,
+      "clf__criterion": "gini"
+    },
+    "cv_log_loss": 2.895744033357278,
+    "test_metrics": {
+      "log_loss": 1.9564440355105586,
+      "brier": 0.7014802491543073,
+      "accuracy": 0.38095238095238093
+    },
+    "baseline_metrics": {
+      "log_loss": 0.9104465534420608,
+      "brier": 0.5294627070238095,
+      "accuracy": 0.5595238095238095
+    }
+  }
+]

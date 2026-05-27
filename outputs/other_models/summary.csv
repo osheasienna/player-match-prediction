@@ -1,0 +1,16 @@
+regime,model,n_features,cv_log_loss,test_log_loss,test_brier,test_acc,baseline_log_loss,delta_vs_baseline
+A: team-level,PolynomialLogReg,29,1.1933,1.0756,0.6439,42.9,0.9104,0.1652
+A: team-level,Ridge,29,1.0518,1.0439,0.6282,45.8,0.9104,0.1335
+A: team-level,Lasso,29,1.0458,1.0495,0.6313,44.0,0.9104,0.1391
+A: team-level,KNN,29,1.0486,1.0281,0.6157,49.4,0.9104,0.1176
+A: team-level,DecisionTree,29,1.475,2.1342,0.6948,41.7,0.9104,1.2237
+B: +FBref,PolynomialLogReg,50,1.4509,1.3739,0.7957,39.3,0.9104,0.4634
+B: +FBref,Ridge,50,1.0569,1.0365,0.6242,44.6,0.9104,0.1261
+B: +FBref,Lasso,50,1.0517,1.0517,0.6338,46.4,0.9104,0.1412
+B: +FBref,KNN,50,1.0495,1.0111,0.6072,51.2,0.9104,0.1007
+B: +FBref,DecisionTree,50,2.5737,1.955,0.71,39.3,0.9104,1.0445
+C: +player,PolynomialLogReg,76,1.4906,1.5039,0.8501,39.9,0.9104,0.5935
+C: +player,Ridge,76,1.0422,1.0238,0.616,49.4,0.9104,0.1133
+C: +player,Lasso,76,1.0356,1.0317,0.62,48.8,0.9104,0.1213
+C: +player,KNN,76,1.0544,1.0232,0.6146,50.6,0.9104,0.1128
+C: +player,DecisionTree,76,2.8957,1.9564,0.7015,38.1,0.9104,1.046

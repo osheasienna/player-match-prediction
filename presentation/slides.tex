@@ -504,6 +504,51 @@
   Brier, accuracy. Uniform reference = 1.099, Understat baseline = 0.910.}
 \end{frame}
 
+%% ── Tuning protocol explained ──────────────────────────────────
+\begin{frame}{Modeling — How we tune: \texttt{RandomizedSearchCV} + \texttt{TimeSeriesSplit}}
+  \footnotesize Every model in this deck is tuned with the same protocol —
+  designed to pick hyperparameters \textbf{without ever peeking at the future}.
+
+  \vspace{0.5em}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{block}{\texttt{TimeSeriesSplit(5)} — fair scoring}
+      \scriptsize Standard cross-validation shuffles rows randomly, which
+      would let the model "see" May 2024 to predict November 2023.
+
+      \vspace{0.3em}
+      \texttt{TimeSeriesSplit} keeps the validation window strictly
+      \emph{after} the training window:
+      \begin{itemize}\setlength\itemsep{0pt}
+        \item Fold 1: train [1--85] $\to$ validate [86--170]
+        \item Fold 2: train [1--170] $\to$ validate [171--255]
+        \item \ldots (5 folds total)
+      \end{itemize}
+      Each fold simulates real deployment: "stand on date X, predict the next batch."
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{\texttt{RandomizedSearchCV} — efficient knob search}
+      \scriptsize Models have hyperparameters (k, max\_depth, learning\_rate\ldots).
+      XGBoost alone has $\sim$17{,}000 combinations on our grid — too many
+      to try exhaustively.
+
+      \vspace{0.3em}
+      \texttt{RandomizedSearchCV} samples \texttt{n\_iter} random configs
+      (we used 30--100), scores each across the 5 time-respecting folds,
+      and refits the winner on the full training set.
+
+      \vspace{0.3em}
+      \textbf{Total work per model:} 30 configs $\times$ 5 folds $=$
+      150 fits, all leak-free, then 1 final refit on the held-out test season.
+    \end{block}
+  \end{columns}
+
+  \vspace{0.3em}
+  \footnotesize\textit{In one line: try many knob settings, score each on
+  five rolling-window forecasts that never see the future, keep the best.}
+\end{frame}
+
 %% ── Modeling results plot ──────────────────────────────────────
 \begin{frame}{Modeling — Results}
   \begin{columns}[T]
@@ -587,6 +632,97 @@
     \footnotesize RF and XGB make different mistakes; averaging their
     calibrated probabilities beats either alone (1.04 vs 1.05/1.05 in regime C).
   \end{block}
+\end{frame}
+
+%% ── Other models comparison ────────────────────────────────────
+\begin{frame}{Other Models — Linear, Polynomial, KNN, Decision Tree}
+  \footnotesize Same protocol, same temporal holdout, same 3 regimes.
+  We tested four additional model families to see whether the choice of
+  algorithm actually matters at our sample size.
+
+  \vspace{0.4em}
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \includegraphics[width=\linewidth]{../outputs/other_models/logloss_comparison.png}
+
+    \column{0.42\textwidth}
+    \scriptsize\textbf{Test log-loss (season 2023/24)}\\[0.2em]
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{lccc}
+      & \textbf{A} & \textbf{B} & \textbf{C} \\
+      \hline
+      Polynomial    & 1.08 & 1.37 & 1.50 \\
+      Ridge (L2)    & 1.04 & 1.04 & \textbf{1.02} \\
+      Lasso (L1)    & 1.05 & 1.05 & 1.03 \\
+      KNN           & 1.03 & \alert{\textbf{1.01}} & 1.02 \\
+      Decision Tree & 2.13 & 1.96 & 1.96 \\
+      \hline
+      RF+XGB ens.   & 1.06 & 1.07 & 1.04 \\
+    \end{tabular}\\[0.4em]
+    \textit{\textbf{A}=team, \textbf{B}=+FBref, \textbf{C}=+player}
+
+    \vspace{0.4em}
+    \alert{\textbf{Six algorithms cluster within 0.03 log-loss}}
+    — we've hit the \emph{information ceiling} of post-match aggregate
+    stats. Closing the gap to Understat (0.91) needs richer features,
+    not a different model.
+  \end{columns}
+
+  \vspace{0.3em}
+  \footnotesize\textbf{Per-model takeaways:}
+  \textbf{Polynomial} overfits as features grow ($d{=}2$ explodes to
+  $400^+$ inputs);
+  \textbf{Ridge/Lasso} match each other — regularisation type doesn't matter much here;
+  \textbf{KNN} surprises by tying the tree ensemble (small dataset $\to$ simple wins);
+  \textbf{Decision Tree} confirms the value of bagging/boosting — a single
+  unregularised tree is the worst model in every regime.
+\end{frame}
+
+%% ── KNN: how we chose k ────────────────────────────────────────
+\begin{frame}{KNN — Choosing $k$}
+  \footnotesize $k$ was not hand-picked. The full grid
+  $k \in \{5, 10, 15, 20, 30, 50\} \times$ \{uniform, distance\}
+  $\times$ \{Manhattan, Euclidean\} was searched under the same
+  \texttt{TimeSeriesSplit(5)} protocol and the lowest-log-loss
+  combination was kept.
+
+  \vspace{0.4em}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{block}{Why those bounds?}
+      \scriptsize
+      \textbf{MIN $k=5$:} smaller $k$ gives degenerate probabilities
+      (denominators of 2--3 only output $\{0, 0.33, 0.5, 0.66, 1\}$)
+      — log-loss punishes that hard.\\[0.3em]
+      \textbf{MAX $k=50$:} the smallest CV training fold is $\sim$75 rows;
+      sklearn requires $k \le$ fold size. We initially tried $k=100$
+      and got runtime warnings, so we capped at 50.
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Winners (per regime)}
+      \scriptsize
+      \setlength{\tabcolsep}{4pt}
+      \begin{tabular}{lcc}
+        Regime & $k$ & metric \\
+        \hline
+        A: team   & 50 & Euclidean ($p{=}2$) \\
+        B: +FBref & 50 & Manhattan ($p{=}1$) \\
+        C: +player& 50 & Manhattan ($p{=}1$) \\
+      \end{tabular}\\[0.4em]
+      All three regimes \textbf{independently} picked $k=50$ with
+      distance-weighting. The Minkowski exponent drifted from
+      $p{=}2$ to $p{=}1$ as features grew — consistent with the
+      textbook result that L1 is more robust in higher dimensions.
+    \end{block}
+  \end{columns}
+
+  \vspace{0.4em}
+  \footnotesize\textbf{Why $k=50$ makes domain sense:} distance-weighting
+  means the closest 5--10 historical matchups still drive the
+  prediction; the further 40 just provide a regularising prior.
+  Football is noisy, so averaging $\sim$12\% of the historical sample
+  smooths randomness without washing out the matchup-specific signal.
 \end{frame}
 
 %% ═══════════════════════════════════════════════════════════

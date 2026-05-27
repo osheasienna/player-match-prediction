@@ -1,0 +1,10 @@
+regime,model,n_features,n_train,n_test,cv_log_loss,test_log_loss,test_brier,test_acc,baseline_log_loss,delta_vs_baseline
+A: team-level,RandomForest,32,425,168,0.8926,0.9141,0.5317,60.7,0.9104,0.0036
+A: team-level,XGBoost,32,425,168,0.9236,0.9023,0.5281,63.1,0.9104,-0.0081
+A: team-level,Ensemble(RF+XGB),32,425,168,0.9081,0.899,0.525,61.9,0.9104,-0.0115
+B: +FBref,RandomForest,53,425,168,0.9005,0.8913,0.5248,58.3,0.9104,-0.0191
+B: +FBref,XGBoost,53,425,168,0.9287,0.8996,0.5326,58.9,0.9104,-0.0108
+B: +FBref,Ensemble(RF+XGB),53,425,168,0.9146,0.8828,0.5224,60.7,0.9104,-0.0277
+C: +player,RandomForest,79,425,168,0.909,0.9054,0.5283,57.7,0.9104,-0.005
+C: +player,XGBoost,79,425,168,0.9308,0.9312,0.5285,56.5,0.9104,0.0207
+C: +player,Ensemble(RF+XGB),79,425,168,0.9199,0.9009,0.5233,57.1,0.9104,-0.0096
