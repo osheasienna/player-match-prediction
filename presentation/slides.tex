@@ -524,14 +524,21 @@
     \end{tabular}\\[0.2em]
     \textit{\textbf{A}=team, \textbf{B}=+FBref, \textbf{C}=+player}
 
-    \vspace{0.5em}
-    \textbf{Best:} ensemble on full player features at
-    \alert{\textbf{0.13}} above Understat (0.91), \textbf{0.06} below
-    uniform (1.10).
+    \vspace{0.4em}
+    \textbf{Accuracy in context (3-class):}\\[0.2em]
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{lc}
+      Random guess & 33\% \\
+      Always home  & 43\% \\
+      Best model   & 50\% \\
+      Bookmaker    & \textbf{56\%} \\
+    \end{tabular}
 
     \vspace{0.4em}
-    \textbf{Accuracy:} 50.6\% on most-likely outcome
-    vs 42\% always-home majority baseline.
+    \alert{\textbf{No model clears the bookmaker baseline
+    (0.91 log-loss).}} Bookmakers have real-time info
+    (injuries, team news) that rolling historical stats
+    cannot capture.
   \end{columns}
 \end{frame}
 

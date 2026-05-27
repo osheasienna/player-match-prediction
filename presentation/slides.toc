@@ -3,4 +3,5 @@
 \beamer@sectionintoc {3}{Dataset Overview}{6}{0}{3}
 \beamer@sectionintoc {4}{Feature Engineering}{9}{0}{4}
 \beamer@sectionintoc {5}{Feature Selection}{11}{0}{5}
-\beamer@sectionintoc {6}{Key Findings}{16}{0}{6}
+\beamer@sectionintoc {6}{Modeling}{16}{0}{6}
+\beamer@sectionintoc {7}{Key Findings}{20}{0}{7}
