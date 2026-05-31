@@ -45,7 +45,7 @@
 \usepackage{tabularx}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,shapes.geometric,positioning,calc}
-\usepackage{fontawesome5}
+\IfFileExists{fontawesome5.sty}{\usepackage{fontawesome5}}{\newcommand{\faDatabase}{DB}}
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{amsmath}
@@ -316,21 +316,9 @@
   \end{columns}
 \end{frame}
 
-%% ── Plot 1: target distribution ─────────────────────────────
-\begin{frame}{Plot 1 — Target Variable Distribution}
-\presenterphoto{ioana_ml}
-  \begin{center}
-    \includegraphics[width=0.75\textwidth]{../outputs/eda/01_target_distribution.png}
-  \end{center}
-  \begin{alertblock}{\small Class imbalance}
-    \small Draws are underrepresented at $\approx$26\%.
-    Models must use class weights or calibrated probabilities —
-    accuracy alone is a misleading metric.
-  \end{alertblock}
-\end{frame}
 
 %% ── Plot 3: missing data ─────────────────────────────────────
-\begin{frame}[t,shrink=19]{Plot 3 — Missing Data: Sources \& Resolution}
+\begin{frame}[t,shrink=19]{Missing Data: Sources \& Resolution}
 \presenterphoto{ioana_ml}
   \begin{columns}[T]
 
@@ -446,43 +434,47 @@
 
 \begin{frame}{Feature Selection — Four-Method Protocol}
 \presenterphoto{ioana_ml}
-  \footnotesize Each of the 73 features was scored by \textbf{four independent methods},
-  percentile-normalised (0--1), and averaged into a \textbf{composite score}.
-
-  \vspace{0.25em}
-
   \begin{columns}[T]
     \column{0.48\textwidth}
     \begin{block}{1. Filter Method}
-      \footnotesize Simple idea: if I know this feature, do I get a better clue
-      about the match result? Good for catching patterns that are not just straight lines.
+      \footnotesize\parbox[t][1.6cm][t]{\linewidth}{Simple idea: if I know this feature, do I get a better clue
+      about the match result? Good for catching patterns that are not just straight lines.}
     \end{block}
     \vspace{0.15em}
     \begin{block}{2. Wrapper Method}
-      \footnotesize Start with many features, remove the weakest ones step by step,
+      \footnotesize\parbox[t][1.6cm][t]{\linewidth}{Start with many features, remove the weakest ones step by step,
       and keep the set that gives the best validation score.
-      Best subset: \textbf{26 features}.
+      Best subset: \textbf{26 features}.}
     \end{block}
 
     \column{0.48\textwidth}
-    \begin{block}{{\scriptsize 3. Embedded Method — Lasso Regression}}
-      \footnotesize A linear model with a penalty that pushes unhelpful features
-      down to exactly zero. 17 features were removed; \textbf{0 player features} were.
+    \begin{block}{3. Embedded Method — Lasso}
+      \footnotesize\parbox[t][1.6cm][t]{\linewidth}{A linear model with a penalty that pushes unhelpful features
+      down to exactly zero. 17 features were removed; \textbf{0 player features} were.}
     \end{block}
     \vspace{0.15em}
-    \begin{block}{{\scriptsize 4. Embedded Method — Decision Tree}}
-      \footnotesize Let a forest of trees rank which features it uses most to make
-      good splits. This gives a second opinion that broadly matches RFECV.
+    \begin{block}{4. Embedded Method — Decision Tree}
+      \footnotesize\parbox[t][1.6cm][t]{\linewidth}{Let a forest of trees rank which features it uses most to make
+      good splits. This gives a second opinion that broadly matches RFECV.}
     \end{block}
   \end{columns}
+\end{frame}
 
-  \vspace{0.2em}
-  \footnotesize\textit{Based on Lecture 9's taxonomy of feature selection methods: filter, wrapper, and embedded methods. Information gain is developed in Lecture 8; Lasso regularization is covered in Lecture 4; and decision-tree / random-forest feature importance is connected to Lecture 8.}\\[0.2em]
-  \footnotesize\textit{Temporal CV (TimeSeriesSplit, 5 folds) throughout — data never shuffled across time.}
+%% ── Plot 12: feature leaderboard ─────────────────────────────
+\begin{frame}{Feature Leaderboard: Top 30 Features}
+\presenterphoto{ioana_ml}
+  \begin{center}
+    \includegraphics[width=0.64\textwidth]{../outputs/eda/12_feature_leaderboard_summary.png}
+  \end{center}
+  \vspace{0.1em}
+  \small
+  \textcolor{understcol}{$\blacksquare$ Understat/Transfermarkt}\quad
+  \textcolor{fbrefcol}{$\blacksquare$ FBref team-level}\quad
+  \textcolor{playercol}{$\blacksquare$ Player-level}
 \end{frame}
 
 %% ── Plot 4: feature distributions ───────────────────────────
-\begin{frame}{Plot 4 — Feature Distributions by Match Outcome (Top 20)}
+\begin{frame}{Feature Distributions by Match Outcome (Top 20)}
 \presenterphoto{ioana_ml}
   \begin{columns}[T]
     \column{0.50\textwidth}
@@ -490,7 +482,7 @@
 
     \column{0.47\textwidth}
     \vspace{0.5em}
-    \small\textbf{How to read:} each panel shows the distribution of one
+    \small Each histogram shows the distribution of one
     feature split by match outcome (H/D/A).
 
     \vspace{0.6em}
@@ -508,7 +500,7 @@
 \end{frame}
 
 %% ── Plot 8: bookmaker vs player cross-correlation ────────────
-\begin{frame}{Plot 8 — Bookmaker Odds vs Player-Level Features}
+\begin{frame}{Bookmaker Odds vs Player-Level Features}
 \presenterphoto{ioana_ml}
   \begin{center}
     \includegraphics[width=0.58\textwidth]{../outputs/eda/08_player_features_vs_bookmaker.png}
@@ -517,28 +509,10 @@
   \small
   The bookmaker's implied probability and the player rolling stats
   \textbf{mostly disagree} — wide scatter, no tight trend.
-  This is a good sign: player features are contributing
-  \emph{new information} that the bookmaker does not fully price in.
-\end{frame}
-
-%% ── Plot 12: feature leaderboard ─────────────────────────────
-\begin{frame}{Plot 12 — Feature Leaderboard: All 73 Features Ranked}
-\presenterphoto{ioana_ml}
-  \begin{center}
-    \includegraphics[width=0.64\textwidth]{../outputs/eda/12_feature_leaderboard_summary.png}
-  \end{center}
-  \vspace{0.1em}
-  \small
-  \textcolor{understcol}{$\blacksquare$ Understat/Transfermarkt}\quad
-  \textcolor{fbrefcol}{$\blacksquare$ FBref team-level}\quad
-  \textcolor{playercol}{$\blacksquare$ Player-level}\\[0.2em]
-  Two player features enter the top 10: \texttt{net\_pl\_starter\_mins} (rank 9)
-  and \texttt{net\_pl\_pct\_fw} (rank 11).
-  10 player features survive RFECV wrapper selection.
 \end{frame}
 
 %% ── Plot 14: correlation heatmap ─────────────────────────────
-\begin{frame}{Plot 14 — Correlation Heatmap: Top 15 Features}
+\begin{frame}{Correlation Heatmap: Top 15 Features}
 \presenterphoto{ioana_ml}
   \begin{columns}[T]
     \column{0.52\textwidth}
@@ -547,13 +521,11 @@
     \column{0.45\textwidth}
     \vspace{0.5em}
     \small\textbf{Red zones} = high correlation $\Rightarrow$ redundant
-    (e.g.\ \texttt{home\_win\_prob} and \texttt{away\_win\_prob} are two sides
-    of the same bet).
+    (e.g.\ \texttt{home\_win\_prob} and \texttt{away\_win\_prob}).
 
     \vspace{0.8em}
-    \textcolor{playercol}{\textbf{Player features}}
-    (\texttt{net\_pl\_pct\_fw}, \texttt{net\_pl\_starter\_mins}) show
-    \emph{near-white rows and columns} — barely correlated with anything
+    \textcolor{playercol}{\textbf{Player features}} show
+    near-white rows and columns $\Rightarrow$ barely correlated with anything
     else.
 
     \vspace{0.8em}
