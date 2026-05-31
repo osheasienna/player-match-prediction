@@ -147,171 +147,73 @@
 \section{Data Sources}
 %% ═══════════════════════════════════════════════════════════
 
-\begin{frame}{Data Sources — Three Pipelines}
+\begin{frame}{Data Sources}
 \presenterphoto{sienna_ml}
-\vspace{-2.0em}
+\vspace{-1.8em}
   \begin{columns}[t]
 
     \column{0.32\textwidth}
     \begin{block}{\textcolor{playercol}{\faDatabase}\; FBref}
       \small
-      \textbf{What:} Team-level match records and player-season
-      summaries\\[0.3em]
-      \textbf{Seasons:} 2018--2023\\[0.3em]
-      \textbf{Rows:} 62{,}683 player-match rows\\[0.3em]
-      \textbf{Script:} \texttt{collect\_fbref.py}
+      Individual player stats per match and team-level summaries\\[0.3em]
+      62{,}683 player-match rows\\[0.3em]
+      Seasons 2018--2023
     \end{block}
 
     \column{0.32\textwidth}
     \begin{block}{\textcolor{understcol}{\faDatabase}\; Understat}
       \small
-      \textbf{What:} Match results, xG values, and pre-match forecast
-      probabilities\\[0.3em]
-      \textbf{Seasons:} 2018--2023\\[0.3em]
-      \textbf{Rows:} 2{,}105 matches\\[0.3em]
-      \textbf{Script:} \texttt{collect\_understat.py}
+      Match results, expected goals (xG), and pre-match win probabilities\\[0.3em]
+      2{,}105 matches\\[0.3em]
+      Seasons 2018--2023
     \end{block}
 
     \column{0.32\textwidth}
     \begin{block}{\textcolor{fbrefcol}{\faDatabase}\; Transfermarkt}
       \small
-      \textbf{What:} Estimated squad market values (euros) and average
-      player age\\[0.3em]
-      \textbf{Seasons:} 2018--2023\\[0.3em]
-      \textbf{Rows:} 174 team-seasons\\[0.3em]
-      \textbf{Script:} \texttt{collect\_transfermarkt.py}
+      Squad market values and average player age --- a proxy for squad quality\\[0.3em]
+      174 team-seasons\\[0.3em]
+      Seasons 2018--2023
     \end{block}
 
   \end{columns}
 
   \vspace{0.5em}
-  \small
-  FBref data was extracted via a scripted pipeline; Understat data via
-  its API; Transfermarkt values from a reliable GitHub Repo. The 2021/22 FBref season required manually completing a CAPTCHA
-  before resuming the scripted download.
+  \small FBref scraped via script; Understat via its public API;
+  Transfermarkt from an open-source data repository.
 \end{frame}
 
-%% ── Pipeline diagram ─────────────────────────────────────────
-\begin{frame}[t]{Data Pipeline}
+\begin{frame}[t]{Pipeline \& Dataset}
 \presenterphoto{sienna_ml}
-\begin{center}
-\vspace{-0.6cm}
-\begin{tikzpicture}[
-  src/.style={rectangle, rounded corners=3pt, text width=0.22\textwidth, align=center,
-              font=\scriptsize, minimum height=0.7cm, inner sep=3pt},
-  proc/.style={rectangle, rounded corners=4pt, draw=midblue!80, fill=midblue!8,
-              text width=0.80\textwidth, align=left, font=\scriptsize, inner sep=5pt},
-  csvbox/.style={rectangle, rounded corners=3pt, draw=darkblue!60, fill=darkblue!7,
-              text width=0.18\textwidth, align=center, font=\scriptsize, inner sep=4pt},
-  arr/.style={-{Stealth[length=4pt]}, thick, color=darkblue!55},
-]
-
-%% row 1: sources
-\node[src, draw=playercol!70, fill=playercol!10] (fb) at (-3.6, 0)
-  {FBref\\{\tiny team records + player summaries}};
-\node[src, draw=understcol!70, fill=understcol!10] (us) at (0, 0)
-  {Understat\\{\tiny results · xG · forecast probs}};
-\node[src, draw=fbrefcol!70, fill=fbrefcol!10] (tm) at (3.6, 0)
-  {Transfermarkt\\{\tiny squad value · mean age}};
-
-%% row 2: processing steps
-\node[proc] (proc) at (0, -2.4) {%
-  \textbf{1.}\ Match the same team names across all data sources
-    (e.g.\ \textit{Lyon} $\to$ \textit{Olympique Lyonnais})\\[1pt]
-  \textbf{2.}\ Turn each match into one row per team so we can roll stats by team\\[1pt]
-  \textbf{3.}\ Compute 5-match rolling averages with a one-match lag
-    so the current game is never included\\[1pt]
-  \textbf{4.}\ Make per-player per-90 stats for shots, SoT, tackles+interceptions,
-    goals, assists \textcolor{playercol}{\textit{(Regime C)}}\\[1pt]
-  \textbf{5.}\ Average the starting XI by minutes played; keep player form
-    through transfers \textcolor{playercol}{\textit{(Regime C)}}\\[1pt]
-  \textbf{6.}\ Drop the first 439 rows with no prior data; code H/D/A as 0/1/2
-};
-
-%% row 3: output CSVs
-\node[csvbox] (csvA) at (-3.6, -5.0)
-  {\textbf{Regime A}\\[1pt]\texttt{\tiny ligue1\_features.csv}\\[1pt]
-   2{,}092 matches · 29 features};
-\node[csvbox] (csvB) at (0, -5.0)
-  {\textbf{Regime B}\\[1pt]\texttt{\tiny ligue1\_fbref\_features.csv}\\[1pt]
-   2{,}092 matches · 50 features};
-\node[csvbox] (csvC) at (3.6, -5.0)
-  {\textbf{Regime C}\\[1pt]\texttt{\tiny ligue1\_player\_features.csv}\\[1pt]
-   1{,}653 matches · 76 features};
-
-%% arrows: sources → proc
-\draw[arr] (fb.south) -- (fb.south |- proc.north);
-\draw[arr] (us.south) -- (proc.north);
-\draw[arr] (tm.south) -- (tm.south |- proc.north);
-
-%% arrows: proc → outputs
-\draw[arr] (csvA.north |- proc.south) -- (csvA.north);
-\draw[arr] (proc.south) -- (csvB.north);
-\draw[arr] (csvC.north |- proc.south) -- (csvC.north);
-
-\end{tikzpicture}
-\end{center}
-\end{frame}
-
-%% ═══════════════════════════════════════════════════════════
-\section{Dataset Overview}
-%% ═══════════════════════════════════════════════════════════
-
-\begin{frame}[t,shrink=16]{Dataset at a Glance}
-\presenterphoto{sienna_ml}
+\vspace{-0.4em}
   \begin{columns}[T]
 
-    \column{0.39\textwidth}
-    \begin{block}{Feature regimes}
-      \scriptsize
-      {\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{0.95}
-      \begin{tabular}{lrr}
-        \toprule
-        Regime & Matches & Features \\
-        \midrule
-        A: team only      & 2{,}092 & 29 \\
-        B: +FBref         & 2{,}092 & 50 \\
-        \alert{C: +player}& \alert{1{,}653} & \alert{76} \\
-        \bottomrule
-      \end{tabular}}\\[0.3em]
-      \scriptsize Regime C loses 439 rows from cold-start roll-up.
-    \end{block}
-    \vspace{0.3em}
-    \begin{block}{Features (Regime C)}
-      \scriptsize
-      {\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{0.95}
-      \begin{tabular}{lr}
-        \toprule
-        Source & Features \\
-        \midrule
-        Understat / Transfermarkt & 29 \\
-        FBref team-level          & 21 \\
-        \alert{Player-level}      & 26 \\
-        \midrule
-        \textbf{Total}            & \textbf{76} \\
-        \bottomrule
-      \end{tabular}}
-    \end{block}
+    \column{0.54\textwidth}
+    \textbf{How we built it:}\\[0.3em]
+    \footnotesize
+    \begin{enumerate}\setlength\itemsep{0.3em}
+      \item Match team names across data sources
+      \item Reshape each match into one row per team, ensuring home and away sides are handled symmetrically
+      \item Construct a 5-match rolling window using only prior games, so the current match never contributes to its own features
+      \item For Regime C, compute per-90 player statistics and average them across the starting eleven, weighted by minutes played
+      \item Remove the first 439 matches because they do not yet have enough prior history for rolling features
+    \end{enumerate}
 
-    \column{0.46\textwidth}
-    \begin{block}{Season breakdown}
-      \scriptsize
-      {\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{0.70}
-      \begin{tabular}{llp{2.7cm}}
-        \toprule
-        Season & Matches & Note \\
-        \midrule
-        2018/19 & 370 & \\
-        2019/20 & 278 & COVID curtailed \\
-        2020/21 & 379 & \\
-        2021/22 & 379 & CAPTCHA step \\
-        2022/23 & 380 & \\
-        2023/24 & 306 & Partial (May 2024) \\
-        \midrule
-        \textbf{Total} & \textbf{2{,}092} & \\
-        \bottomrule
-      \end{tabular}}
-    \end{block}
+    \column{0.42\textwidth}
+    \textbf{Output datasets:}\\[0.3em]
+    \footnotesize
+    {\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.1}
+    \begin{tabular}{lrr}
+      \toprule
+      Regime & Matches & Features \\
+      \midrule
+      A: team only      & 2{,}092 & 29 \\
+      B: +FBref         & 2{,}092 & 50 \\
+      \alert{C: +player}& \alert{1{,}653} & \alert{76} \\
+      \bottomrule
+    \end{tabular}}\\[0.5em]
+    \footnotesize Regime C is smaller: the first 439 matches
+    have no prior rolling history.
 
   \end{columns}
 \end{frame}
@@ -359,72 +261,67 @@
 \section{Feature Engineering}
 %% ═══════════════════════════════════════════════════════════
 
-\begin{frame}[shrink=5]{Feature Engineering}
-\presenterphoto{sienna_ml}
-  \vspace{0.3em}
-  \begin{center}
-  \small
-  {\setlength{\tabcolsep}{6pt}\renewcommand{\arraystretch}{1.15}
-  \begin{tabularx}{0.95\linewidth}{lXl}
-    \toprule
-    Source & Features engineered & Regimes \\
-    \midrule
-    Understat + Transfermarkt
-      & Rolling xG, goals, wins, points; squad value, age
-      & A, B, C \\
-    FBref team-level
-      & Rolling possession, formation, goals $+$ assists per 90 (team)
-      & B, C \\
-    \alert{Player-level}
-      & \alert{Rolling shots, shots on target, defensive actions, goals, assists per 90}
-      & \alert{C only} \\
-    \bottomrule
-  \end{tabularx}}
-  \end{center}
-
-  \vspace{0.6em}
-  \footnotesize
-  \begin{itemize}\setlength\itemsep{0.2em}
-    \item \textbf{Anti-leakage:} 5-match rolling window with \texttt{shift(1)} ---
-          current match never in its own features
-    \item \textbf{Bookmaker probabilities excluded} from model inputs ---
-          kept as external baseline only (including them would be circular)
-    \item \textbf{Player rolling stats are personal, not club-based} ---
-          if a player transfers, their form history carries over
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Player-Level Aggregation}
+\begin{frame}[shrink=15]{Feature Engineering}
 \presenterphoto{sienna_ml}
   \begin{columns}[T]
-    \column{0.50\textwidth}
-    Each player's 5-match rolling stat is aggregated across the starting XI,
-    \textbf{weighted by minutes played}:
+    \column{0.52\textwidth}
+    \textbf{Three feature layers:}\\[0.2em]
+    \footnotesize
+    {\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.05}
+    \begin{tabularx}{\linewidth}{lXl}
+      \toprule
+      Source & Features engineered & Regimes \\
+      \midrule
+      Understat + TM
+        & xG, goals, wins, points; value, age
+        & A, B, C \\
+      FBref team
+        & Possession, goals $+$ assists per 90
+        & B, C \\
+      \alert{Player}
+        & \alert{Shots, shots on target, tackles + interceptions, goals, assists per 90}
+        & \alert{C} \\
+      \bottomrule
+    \end{tabularx}}
+
+    \vspace{0.4em}
+    \footnotesize\textbf{Player aggregation (Regime C):}
     \[
       \hat{s}_{\text{team}} = \frac{\sum_{p \in \text{XI}} \text{min}_p \cdot \text{roll}_{p}}{\sum_{p \in \text{XI}} \text{min}_p}
     \]
-    \vspace{0.2em}
-    Each stat then becomes three features:\\[0.3em]
-    \texttt{home\_pl\_*} \quad \texttt{away\_pl\_*} \quad \texttt{net\_pl\_*}
-
-    \column{0.46\textwidth}
+    \column{0.44\textwidth}
     \begin{block}{Stats tracked per player}
-      \small
-      \begin{tabular}{ll}
+      \scriptsize
+      \begin{tabularx}{\linewidth}{lX}
         \toprule
         Feature & Meaning \\
         \midrule
-        \texttt{sh\_p90}       & shots / 90 \\
-        \texttt{sot\_p90}      & shots on target / 90 \\
-        \texttt{def\_p90}      & tackles + int.\ / 90 \\
-        \texttt{gls\_p90}      & goals / 90 \\
-        \texttt{ast\_p90}      & assists / 90 \\
-        \texttt{starter\_mins} & minutes regularity \\
-        \texttt{pct\_fw}       & fraction forwards \\
-        \texttt{depth\_sh}     & starter vs bench gap \\
+        \texttt{sh\_p90}       & shots per 90 min \\
+        \texttt{sot\_p90}      & shots on target per 90 \\
+        \texttt{def\_p90}      & tackles + interceptions per 90 \\
+        \texttt{gls\_p90}      & goals per 90 min \\
+        \texttt{ast\_p90}      & assists per 90 min \\
+        \texttt{starter\_mins} & average minutes per game \\
+        \texttt{pct\_fw}       & share of XI minutes to forwards \\
+        \texttt{depth\_sh}     & shot gap: starters vs substitutes \\
         \bottomrule
-      \end{tabular}
+      \end{tabularx}
     \end{block}
+    \vspace{0.3em}
+      \scriptsize
+      \setlength{\itemsep}{0pt}
+      \setlength{\parskip}{0pt}
+      \begin{itemize}
+        \item Compute player rolling stats on a per-90 basis.
+        \item Aggregate the starting XI by minutes played.
+        \item Produce home, away, and net versions of each team stat.
+      \end{itemize}
+      \vspace{-0.2em}
+      {\scriptsize
+      \textbf{No data leakage:} only the five matches before the current game are used.\\[0.1em]
+      \textbf{Form follows the player:} recent player form travels with transfers, so predictions rely on player form more than just current team affiliation.
+      }
+
   \end{columns}
 \end{frame}
 

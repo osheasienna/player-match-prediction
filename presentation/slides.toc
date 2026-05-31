@@ -1,7 +1,6 @@
 \beamer@sectionintoc {1}{Research Hypothesis}{3}{0}{1}
 \beamer@sectionintoc {2}{Data Sources}{4}{0}{2}
-\beamer@sectionintoc {3}{Dataset Overview}{6}{0}{3}
-\beamer@sectionintoc {4}{Feature Engineering}{8}{0}{4}
-\beamer@sectionintoc {5}{Feature Selection}{10}{0}{5}
-\beamer@sectionintoc {6}{Linear Baseline (Ava)}{15}{0}{6}
-\beamer@sectionintoc {7}{Key Findings}{23}{0}{7}
+\beamer@sectionintoc {3}{Feature Engineering}{7}{0}{3}
+\beamer@sectionintoc {4}{Feature Selection}{8}{0}{4}
+\beamer@sectionintoc {5}{Linear Baseline (Ava)}{13}{0}{5}
+\beamer@sectionintoc {6}{Key Findings}{21}{0}{6}
