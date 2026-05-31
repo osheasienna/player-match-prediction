@@ -8,7 +8,8 @@
       "Bash(python3 -c ' *)",
       "Bash(grep -v \"^fbref$\")",
       "Bash(grep -v \"^player$\")",
-      "Bash(pdflatex -interaction=nonstopmode slides.tex)"
+      "Bash(pdflatex -interaction=nonstopmode slides.tex)",
+      "Bash(pdflatex -interaction=nonstopmode '\\\\documentclass[aspectratio=169,12pt]{beamer}\\\\begin{document}\\\\typeout{WIDTH=\\\\the\\\\paperwidth}\\\\typeout{HEIGHT=\\\\the\\\\paperheight}\\\\end{document}')"
     ]
   }
 }

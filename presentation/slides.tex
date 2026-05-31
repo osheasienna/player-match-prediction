@@ -49,6 +49,28 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{amsmath}
+\usepackage{eso-pic}
+
+%% ── Circular presenter photo (top-right, page-absolute) ──────
+%% Uses eso-pic shipout hook so shrink/scale frames don't shift it.
+%% \AtPageUpperLeft places origin at page upper-left; \put(W-dx, -dy)
+%% then shifts right and down to the desired circle centre.
+\newcommand{\presenterphoto}[1]{%
+  \AddToShipoutPictureFG*{%
+    \AtPageUpperLeft{%
+      \put(\LenToUnit{\paperwidth-0.62cm},\LenToUnit{-0.52cm}){%
+        \tikz[overlay]{%
+          \begin{scope}
+            \clip (0,0) circle (0.40cm);
+            \node[inner sep=0pt] at (0,0)
+              {\includegraphics[width=0.82cm]{#1}};
+          \end{scope}
+          \draw[white,line width=0.8pt] (0,0) circle (0.40cm);
+        }%
+      }%
+    }%
+  }%
+}
 
 %% ── Metadata ─────────────────────────────────────────────────
 \title[Player-Level Match Prediction]{%
@@ -83,32 +105,42 @@
 %% ═══════════════════════════════════════════════════════════
 
 \begin{frame}{Central Hypothesis}
+\presenterphoto{sienna_ml}
+  \vspace{-0.7em}
   \begin{block}{Research Question}
-    Do \alert{player-level} rolling statistics add predictive power
-    for match outcomes beyond team-level aggregates and bookmaker odds?
+    Do \alert{individual football player} rolling statistics add predictive
+    signals beyond team-level aggregates?
   \end{block}
 
-  \vspace{0.6em}
+  \vspace{0.3em}
 
+  \textbf{Goal:} predict Ligue 1 match outcomes (home win, draw, away win)
+  using team and player data. Train on 2018--2022; test on 2023/24.
+
+  \vspace{0.5em}
+
+  \textbf{Three feature regimes evaluated:}
+
+  \vspace{-0.6em}
   \begin{columns}[T]
-    \column{0.48\textwidth}
-    \textbf{Standard approach}\\[0.4em]
-    Team-level rolling form $\cdot$ squad market value $\cdot$
-    bookmaker implied probabilities
+    \column{0.32\textwidth}
+    \begin{block}{Regime A}
+      \small Team-level aggregates\\[0.2em]
+      29 features
+    \end{block}
 
-    \column{0.48\textwidth}
-    \textbf{This project adds}\\[0.4em]
-    Per-player rolling stats \emph{tracked across transfers},
-    aggregated over the starting XI weighted by minutes played
+    \column{0.32\textwidth}
+    \begin{block}{Regime B}
+      \small Team + FBref match statistics\\[0.2em]
+      50 features
+    \end{block}
+
+    \column{0.32\textwidth}
+    \begin{alertblock}{Regime C}
+      \small Full set incl.\ \alert{player-rolling} features\\[0.2em]
+      76 features
+    \end{alertblock}
   \end{columns}
-
-  \vspace{0.6em}
-
-  \begin{alertblock}{Key insight}
-    Tracking individual player form (not team form) captures information
-    like mid-season transfers, rotation, and injury recovery that team
-    aggregates smooth over.
-  \end{alertblock}
 \end{frame}
 
 %% ═══════════════════════════════════════════════════════════
@@ -116,12 +148,24 @@
 %% ═══════════════════════════════════════════════════════════
 
 \begin{frame}{Data Sources — Three Pipelines}
-  \begin{columns}[T]
+\presenterphoto{sienna_ml}
+\vspace{-2.0em}
+  \begin{columns}[t]
+
+    \column{0.32\textwidth}
+    \begin{block}{\textcolor{playercol}{\faDatabase}\; FBref}
+      \small
+      \textbf{What:} Team-level match records and player-season
+      summaries\\[0.3em]
+      \textbf{Seasons:} 2018--2023\\[0.3em]
+      \textbf{Rows:} 62{,}683 player-match rows\\[0.3em]
+      \textbf{Script:} \texttt{collect\_fbref.py}
+    \end{block}
 
     \column{0.32\textwidth}
     \begin{block}{\textcolor{understcol}{\faDatabase}\; Understat}
       \small
-      \textbf{What:} xG timelines, match results, pre-match win/draw/loss
+      \textbf{What:} Match results, xG values, and pre-match forecast
       probabilities\\[0.3em]
       \textbf{Seasons:} 2018--2023\\[0.3em]
       \textbf{Rows:} 2{,}105 matches\\[0.3em]
@@ -131,73 +175,80 @@
     \column{0.32\textwidth}
     \begin{block}{\textcolor{fbrefcol}{\faDatabase}\; Transfermarkt}
       \small
-      \textbf{What:} Squad market values, player counts, squad age\\[0.3em]
+      \textbf{What:} Estimated squad market values (euros) and average
+      player age\\[0.3em]
       \textbf{Seasons:} 2018--2023\\[0.3em]
       \textbf{Rows:} 174 team-seasons\\[0.3em]
       \textbf{Script:} \texttt{collect\_transfermarkt.py}
-    \end{block}
-
-    \column{0.32\textwidth}
-    \begin{block}{\textcolor{playercol}{\faDatabase}\; FBref}
-      \small
-      \textbf{What:} Per-player per-match: goals, assists, shots, SoT,
-      tackles, interceptions, minutes, position\\[0.3em]
-      \textbf{Rows:} 62{,}683 player-match rows\\[0.3em]
-      \textbf{Script:} \texttt{collect\_fbref.py}
     \end{block}
 
   \end{columns}
 
   \vspace{0.5em}
   \small
-  FBref data was scraped via \texttt{soccerdata} using an undetected
-  headless Chrome driver; the 2021/22 season required a visible browser
-  pass to resolve a CAPTCHA block.
+  FBref data was extracted via a scripted pipeline; Understat data via
+  its API; Transfermarkt values from a reliable GitHub Repo. The 2021/22 FBref season required manually completing a CAPTCHA
+  before resuming the scripted download.
 \end{frame}
 
 %% ── Pipeline diagram ─────────────────────────────────────────
-\begin{frame}{Data Pipeline}
+\begin{frame}[t]{Data Pipeline}
+\presenterphoto{sienna_ml}
 \begin{center}
+\vspace{-0.6cm}
 \begin{tikzpicture}[
-  boxu/.style={rectangle, rounded corners=3pt, draw=understcol!70, fill=understcol!12,
-               text width=2.6cm, align=center, minimum height=0.9cm, font=\small},
-  boxf/.style={rectangle, rounded corners=3pt, draw=fbrefcol!70,   fill=fbrefcol!12,
-               text width=2.6cm, align=center, minimum height=0.9cm, font=\small},
-  boxp/.style={rectangle, rounded corners=3pt, draw=playercol!70,  fill=playercol!12,
-               text width=2.6cm, align=center, minimum height=0.9cm, font=\small},
-  boxd/.style={rectangle, rounded corners=3pt, draw=darkblue!70,   fill=darkblue!12,
-               text width=2.8cm, align=center, minimum height=0.9cm, font=\small},
-  arr/.style={-{Stealth[length=5pt]}, thick, color=darkblue!60},
-  lbl/.style={font=\footnotesize, color=darkblue!70}
+  src/.style={rectangle, rounded corners=3pt, text width=0.22\textwidth, align=center,
+              font=\scriptsize, minimum height=0.7cm, inner sep=3pt},
+  proc/.style={rectangle, rounded corners=4pt, draw=midblue!80, fill=midblue!8,
+              text width=0.80\textwidth, align=left, font=\scriptsize, inner sep=5pt},
+  csvbox/.style={rectangle, rounded corners=3pt, draw=darkblue!60, fill=darkblue!7,
+              text width=0.18\textwidth, align=center, font=\scriptsize, inner sep=4pt},
+  arr/.style={-{Stealth[length=4pt]}, thick, color=darkblue!55},
 ]
 
-%% sources
-\node[boxu] (us)  at (0,0)   {Understat\\{\tiny xG · results · odds}};
-\node[boxf] (tm)  at (0,-1.6){Transfermarkt\\{\tiny squad values}};
-\node[boxp] (fb)  at (0,-3.2){FBref\\{\tiny 62k player-match rows}};
+%% row 1: sources
+\node[src, draw=playercol!70, fill=playercol!10] (fb) at (-3.6, 0)
+  {FBref\\{\tiny team records + player summaries}};
+\node[src, draw=understcol!70, fill=understcol!10] (us) at (0, 0)
+  {Understat\\{\tiny results · xG · forecast probs}};
+\node[src, draw=fbrefcol!70, fill=fbrefcol!10] (tm) at (3.6, 0)
+  {Transfermarkt\\{\tiny squad value · mean age}};
 
-%% engineering
-\node[boxu] (fe1) at (4.2, 0)   {Rolling xG\\form features};
-\node[boxf] (fe2) at (4.2,-1.6) {Squad value\\features};
-\node[boxp] (fe3) at (4.2,-3.2) {Player rolling\\stats (per 90)};
+%% row 2: processing steps
+\node[proc] (proc) at (0, -2.4) {%
+  \textbf{1.}\ Match the same team names across all data sources
+    (e.g.\ \textit{Lyon} $\to$ \textit{Olympique Lyonnais})\\[1pt]
+  \textbf{2.}\ Turn each match into one row per team so we can roll stats by team\\[1pt]
+  \textbf{3.}\ Compute 5-match rolling averages with a one-match lag
+    so the current game is never included\\[1pt]
+  \textbf{4.}\ Make per-player per-90 stats for shots, SoT, tackles+interceptions,
+    goals, assists \textcolor{playercol}{\textit{(Regime C)}}\\[1pt]
+  \textbf{5.}\ Average the starting XI by minutes played; keep player form
+    through transfers \textcolor{playercol}{\textit{(Regime C)}}\\[1pt]
+  \textbf{6.}\ Drop the first 439 rows with no prior data; code H/D/A as 0/1/2
+};
 
-%% join
-\node[boxd, text width=2.8cm, minimum height=2.6cm]
-      (join) at (8.2,-1.6) {Joined on\\date + team\\name\\[0.3em]{\tiny 2{,}092 rows}\\{\tiny 87 columns}};
+%% row 3: output CSVs
+\node[csvbox] (csvA) at (-3.6, -5.0)
+  {\textbf{Regime A}\\[1pt]\texttt{\tiny ligue1\_features.csv}\\[1pt]
+   2{,}092 matches · 29 features};
+\node[csvbox] (csvB) at (0, -5.0)
+  {\textbf{Regime B}\\[1pt]\texttt{\tiny ligue1\_fbref\_features.csv}\\[1pt]
+   2{,}092 matches · 50 features};
+\node[csvbox] (csvC) at (3.6, -5.0)
+  {\textbf{Regime C}\\[1pt]\texttt{\tiny ligue1\_player\_features.csv}\\[1pt]
+   1{,}653 matches · 76 features};
 
-%% final
-\node[boxd] (final) at (12,-1.6)
-  {Final dataset\\{\tiny 1{,}653 rows}\\{\tiny (cold-start\\rows dropped)}};
+%% arrows: sources → proc
+\draw[arr] (fb.south) -- (fb.south |- proc.north);
+\draw[arr] (us.south) -- (proc.north);
+\draw[arr] (tm.south) -- (tm.south |- proc.north);
 
-\draw[arr] (us)  -- (fe1);
-\draw[arr] (tm)  -- (fe2);
-\draw[arr] (fb)  -- (fe3);
-\draw[arr] (fe1) -- (join);
-\draw[arr] (fe2) -- (join);
-\draw[arr] (fe3) -- (join);
-\draw[arr] (join) -- (final);
+%% arrows: proc → outputs
+\draw[arr] (csvA.north |- proc.south) -- (csvA.north);
+\draw[arr] (proc.south) -- (csvB.north);
+\draw[arr] (csvC.north |- proc.south) -- (csvC.north);
 
-\node[lbl, above=0pt of fe1] {Feature Engineering};
 \end{tikzpicture}
 \end{center}
 \end{frame}
@@ -206,52 +257,68 @@
 \section{Dataset Overview}
 %% ═══════════════════════════════════════════════════════════
 
-\begin{frame}{Dataset at a Glance}
+\begin{frame}[t,shrink=16]{Dataset at a Glance}
+\presenterphoto{sienna_ml}
   \begin{columns}[T]
-    \column{0.38\textwidth}
-    \begin{block}{Coverage}
-      \small
-      \begin{tabular}{ll}
-        Matches   & 1{,}653 \\
-        Seasons   & 2018--2024 \\
-        Teams     & 29 (incl.\ promoted) \\
-        Features  & 73 \\
-        Target    & H / D / A \\
-      \end{tabular}
+
+    \column{0.39\textwidth}
+    \begin{block}{Feature regimes}
+      \scriptsize
+      {\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{0.95}
+      \begin{tabular}{lrr}
+        \toprule
+        Regime & Matches & Features \\
+        \midrule
+        A: team only      & 2{,}092 & 29 \\
+        B: +FBref         & 2{,}092 & 50 \\
+        \alert{C: +player}& \alert{1{,}653} & \alert{76} \\
+        \bottomrule
+      \end{tabular}}\\[0.3em]
+      \scriptsize Regime C loses 439 rows from cold-start roll-up.
     \end{block}
-
-    \vspace{0.4em}
-
-    \begin{block}{Feature sources}
-      \small
+    \vspace{0.3em}
+    \begin{block}{Features (Regime C)}
+      \scriptsize
+      {\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{0.95}
       \begin{tabular}{lr}
-        Understat / Transfermarkt & 32 \\
-        FBref team-level          & 17 \\
-        \alert{Player-level}      & 24 \\
-      \end{tabular}
+        \toprule
+        Source & Features \\
+        \midrule
+        Understat / Transfermarkt & 29 \\
+        FBref team-level          & 21 \\
+        \alert{Player-level}      & 26 \\
+        \midrule
+        \textbf{Total}            & \textbf{76} \\
+        \bottomrule
+      \end{tabular}}
     \end{block}
 
-    \column{0.58\textwidth}
+    \column{0.46\textwidth}
     \begin{block}{Season breakdown}
-      \small
-      \begin{tabular}{llp{3.4cm}}
+      \scriptsize
+      {\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{0.70}
+      \begin{tabular}{llp{2.7cm}}
         \toprule
         Season & Matches & Note \\
         \midrule
         2018/19 & 370 & \\
-        2019/20 & 278 & COVID — curtailed \\
+        2019/20 & 278 & COVID curtailed \\
         2020/21 & 379 & \\
-        2021/22 & 379 & FBref initially blocked \\
+        2021/22 & 379 & CAPTCHA step \\
         2022/23 & 380 & \\
-        2023/24 & 306 & Partial (to May 2024) \\
+        2023/24 & 306 & Partial (May 2024) \\
+        \midrule
+        \textbf{Total} & \textbf{2{,}092} & \\
         \bottomrule
-      \end{tabular}
+      \end{tabular}}
     \end{block}
+
   \end{columns}
 \end{frame}
 
 %% ── Plot 1: target distribution ─────────────────────────────
 \begin{frame}{Plot 1 — Target Variable Distribution}
+\presenterphoto{ioana_ml}
   \begin{center}
     \includegraphics[width=0.75\textwidth]{../outputs/eda/01_target_distribution.png}
   \end{center}
@@ -263,22 +330,40 @@
 \end{frame}
 
 %% ── Plot 3: missing data ─────────────────────────────────────
-\begin{frame}{Plot 3 — Missing Data: Sources \& Resolution}
-  \begin{center}
-    \includegraphics[width=0.68\textwidth]{../outputs/eda/03_missingness.png}
-  \end{center}
-  \vspace{0.2em}
-  \footnotesize
+\begin{frame}[t,shrink=19]{Plot 3 — Missing Data: Sources \& Resolution}
+\presenterphoto{ioana_ml}
   \begin{columns}[T]
-    \column{0.48\textwidth}
-    \textbf{FBref team features ($\sim$28--36\% null):} possession and
-    formation data for 2021/22 was not scraped — FBref blocked that season.
-    Handled via imputation.
 
-    \column{0.48\textwidth}
-    \textbf{Player rolling stats:} cold-start nulls (first $\approx$3
-    matchdays/season). Fixed by dropping those 439 rows, leaving
-    1{,}653 clean matches.
+    \column{0.54\textwidth}
+    \vspace{0.1em}
+    \includegraphics[width=\linewidth]{../outputs/eda/03_missingness.png}
+
+    \column{0.43\textwidth}
+    \scriptsize
+    \textbf{What is missing?}
+    \begin{itemize}\setlength\itemsep{0.2em}
+      \item No FBref \emph{team} data for 2021/22 – not able to collect team-level data, but player-level was captured
+      \item Rolling features need prior matches — first $\approx$5 matchdays
+            per season are null (cold-start)
+      \item \texttt{net\_*} at $\sim$51\%: null if \emph{either} side null
+    \end{itemize}
+
+    \vspace{0.4em}
+    \textbf{What we did}
+    \begin{itemize}\setlength\itemsep{0.2em}
+      \item No imputation – null rows dropped at fit time
+      \item Same subset used across all regimes
+      \item Regime C: 439 cold-start rows dropped $\to$ 1{,}653 matches
+    \end{itemize}
+
+    \vspace{0.4em}
+    \textbf{What this means}
+    \begin{itemize}\setlength\itemsep{0.2em}
+      \item 2021/22 excluded equally from A, B, C – no regime penalised
+      \item Regime C subset smaller – note when comparing across regimes
+      \item \alert{Understat / Transfermarkt: zero missingness}
+    \end{itemize}
+
   \end{columns}
 \end{frame}
 
@@ -286,65 +371,71 @@
 \section{Feature Engineering}
 %% ═══════════════════════════════════════════════════════════
 
-\begin{frame}{Feature Engineering — Three Stages}
-  \begin{block}{Stage 1 — Understat + Transfermarkt}
-    \footnotesize Rolling 5-match xG, goals, wins, points per team.
-    Squad market value, average player value, squad age.
-    Bookmaker implied win/draw/loss probabilities.
-  \end{block}
+\begin{frame}[shrink=5]{Feature Engineering}
+\presenterphoto{sienna_ml}
+  \vspace{0.3em}
+  \begin{center}
+  \small
+  {\setlength{\tabcolsep}{6pt}\renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.95\linewidth}{lXl}
+    \toprule
+    Source & Features engineered & Regimes \\
+    \midrule
+    Understat + Transfermarkt
+      & Rolling xG, goals, wins, points; squad value, age
+      & A, B, C \\
+    FBref team-level
+      & Rolling possession, formation, goals $+$ assists per 90 (team)
+      & B, C \\
+    \alert{Player-level}
+      & \alert{Rolling shots, shots on target, defensive actions, goals, assists per 90}
+      & \alert{C only} \\
+    \bottomrule
+  \end{tabularx}}
+  \end{center}
 
-  \vspace{0.15em}
-
-  \begin{block}{Stage 2 — FBref team-level}
-    \footnotesize Rolling possession, formation (attackers count),
-    player season G$+$A/90 aggregated to team level.
-  \end{block}
-
-  \vspace{0.15em}
-
-  \begin{alertblock}{Stage 3 — Player-level (novel contribution)}
-    \footnotesize Per-player rolling shots, SoT, defensive actions, goals, assists per 90
-    tracked \emph{across team changes}.
-    Aggregated over the starting XI weighted by minutes played.
-    Net differentials (home $-$ away) for each stat.
-  \end{alertblock}
-
-  \vspace{0.2em}
-  \footnotesize All rolling windows use \texttt{shift(1)} before rolling mean —
-  the current match is \emph{never} included in its own features.
+  \vspace{0.6em}
+  \footnotesize
+  \begin{itemize}\setlength\itemsep{0.2em}
+    \item \textbf{Anti-leakage:} 5-match rolling window with \texttt{shift(1)} ---
+          current match never in its own features
+    \item \textbf{Bookmaker probabilities excluded} from model inputs ---
+          kept as external baseline only (including them would be circular)
+    \item \textbf{Player rolling stats are personal, not club-based} ---
+          if a player transfers, their form history carries over
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Player-Level Aggregation Logic}
+\begin{frame}{Player-Level Aggregation}
+\presenterphoto{sienna_ml}
   \begin{columns}[T]
-    \column{0.5\textwidth}
-    \textbf{Per player, prior 5 appearances:}
-    \[
-      \text{roll}_{p,t} = \frac{1}{5}\sum_{k=1}^{5} \text{stat}_{p,t-k}
-    \]
-    Tracked \emph{individually} — a transfer does not reset form.
-
-    \vspace{0.7em}
-
-    \textbf{Starting XI aggregate (weighted mean):}
+    \column{0.50\textwidth}
+    Each player's 5-match rolling stat is aggregated across the starting XI,
+    \textbf{weighted by minutes played}:
     \[
       \hat{s}_{\text{team}} = \frac{\sum_{p \in \text{XI}} \text{min}_p \cdot \text{roll}_{p}}{\sum_{p \in \text{XI}} \text{min}_p}
     \]
+    \vspace{0.2em}
+    Each stat then becomes three features:\\[0.3em]
+    \texttt{home\_pl\_*} \quad \texttt{away\_pl\_*} \quad \texttt{net\_pl\_*}
 
     \column{0.46\textwidth}
-    \begin{block}{Player features produced}
+    \begin{block}{Stats tracked per player}
       \small
       \begin{tabular}{ll}
-        \texttt{*\_sh\_p90}       & shots / 90 \\
-        \texttt{*\_sot\_p90}      & shots on target / 90 \\
-        \texttt{*\_def\_p90}      & TklW $+$ Int / 90 \\
-        \texttt{*\_gls\_p90}      & goals / 90 \\
-        \texttt{*\_ast\_p90}      & assists / 90 \\
-        \texttt{*\_starter\_mins} & regularity proxy \\
-        \texttt{*\_pct\_fw}       & fraction forwards \\
-        \texttt{*\_depth\_sh}     & shot depth gap \\
-      \end{tabular}\\[0.3em]
-      Each exists as \texttt{home\_pl\_*},
-      \texttt{away\_pl\_*}, \texttt{net\_pl\_*}
+        \toprule
+        Feature & Meaning \\
+        \midrule
+        \texttt{sh\_p90}       & shots / 90 \\
+        \texttt{sot\_p90}      & shots on target / 90 \\
+        \texttt{def\_p90}      & tackles + int.\ / 90 \\
+        \texttt{gls\_p90}      & goals / 90 \\
+        \texttt{ast\_p90}      & assists / 90 \\
+        \texttt{starter\_mins} & minutes regularity \\
+        \texttt{pct\_fw}       & fraction forwards \\
+        \texttt{depth\_sh}     & starter vs bench gap \\
+        \bottomrule
+      \end{tabular}
     \end{block}
   \end{columns}
 \end{frame}
@@ -354,6 +445,7 @@
 %% ═══════════════════════════════════════════════════════════
 
 \begin{frame}{Feature Selection — Four-Method Protocol}
+\presenterphoto{ioana_ml}
   \footnotesize Each of the 73 features was scored by \textbf{four independent methods},
   percentile-normalised (0--1), and averaged into a \textbf{composite score}.
 
@@ -361,35 +453,37 @@
 
   \begin{columns}[T]
     \column{0.48\textwidth}
-    \begin{block}{1. Mutual Information (Filter)}
-      \footnotesize How much does knowing this feature reduce uncertainty about the result?
-      Non-parametric; catches non-linear relationships.
+    \begin{block}{1. Filter Method}
+      \footnotesize Simple idea: if I know this feature, do I get a better clue
+      about the match result? Good for catching patterns that are not just straight lines.
     \end{block}
     \vspace{0.15em}
-    \begin{block}{2. RFECV — Wrapper}
-      \footnotesize A Random Forest eliminates weak features iteratively under
-      temporal CV. Only features it \emph{keeps} survive.
-      Optimal: \textbf{26 features}.
+    \begin{block}{2. Wrapper Method}
+      \footnotesize Start with many features, remove the weakest ones step by step,
+      and keep the set that gives the best validation score.
+      Best subset: \textbf{26 features}.
     \end{block}
 
     \column{0.48\textwidth}
-    \begin{block}{3. LASSO (Embedded)}
-      \footnotesize Penalised logistic regression zeroes redundant features.
-      17 features zeroed; \textbf{0 player features} zeroed.
+    \begin{block}{{\scriptsize 3. Embedded Method — Lasso Regression}}
+      \footnotesize A linear model with a penalty that pushes unhelpful features
+      down to exactly zero. 17 features were removed; \textbf{0 player features} were.
     \end{block}
     \vspace{0.15em}
-    \begin{block}{4. RF Importance (Embedded)}
-      \footnotesize Mean decrease in impurity across 300 trees.
-      Stable across seeds; corroborates RFECV ranking.
+    \begin{block}{{\scriptsize 4. Embedded Method — Decision Tree}}
+      \footnotesize Let a forest of trees rank which features it uses most to make
+      good splits. This gives a second opinion that broadly matches RFECV.
     \end{block}
   \end{columns}
 
   \vspace{0.2em}
+  \footnotesize\textit{Based on Lecture 9's taxonomy of feature selection methods: filter, wrapper, and embedded methods. Information gain is developed in Lecture 8; Lasso regularization is covered in Lecture 4; and decision-tree / random-forest feature importance is connected to Lecture 8.}\\[0.2em]
   \footnotesize\textit{Temporal CV (TimeSeriesSplit, 5 folds) throughout — data never shuffled across time.}
 \end{frame}
 
 %% ── Plot 4: feature distributions ───────────────────────────
 \begin{frame}{Plot 4 — Feature Distributions by Match Outcome (Top 20)}
+\presenterphoto{ioana_ml}
   \begin{columns}[T]
     \column{0.50\textwidth}
     \includegraphics[width=\linewidth]{../outputs/eda/04_histograms_by_result.png}
@@ -415,6 +509,7 @@
 
 %% ── Plot 8: bookmaker vs player cross-correlation ────────────
 \begin{frame}{Plot 8 — Bookmaker Odds vs Player-Level Features}
+\presenterphoto{ioana_ml}
   \begin{center}
     \includegraphics[width=0.58\textwidth]{../outputs/eda/08_player_features_vs_bookmaker.png}
   \end{center}
@@ -428,6 +523,7 @@
 
 %% ── Plot 12: feature leaderboard ─────────────────────────────
 \begin{frame}{Plot 12 — Feature Leaderboard: All 73 Features Ranked}
+\presenterphoto{ioana_ml}
   \begin{center}
     \includegraphics[width=0.64\textwidth]{../outputs/eda/12_feature_leaderboard_summary.png}
   \end{center}
@@ -443,6 +539,7 @@
 
 %% ── Plot 14: correlation heatmap ─────────────────────────────
 \begin{frame}{Plot 14 — Correlation Heatmap: Top 15 Features}
+\presenterphoto{ioana_ml}
   \begin{columns}[T]
     \column{0.52\textwidth}
     \includegraphics[width=\linewidth]{../outputs/eda/14_top15_correlation_heatmap.png}
@@ -470,6 +567,7 @@
 %% ═══════════════════════════════════════════════════════════
 
 \begin{frame}{Modeling — Protocol}
+\presenterphoto{ava_ml}
   \footnotesize Three feature regimes compared on the \textbf{same} 593-match
   common subset (NaN-free across all three CSVs), with a strict temporal
   holdout: train on seasons 2018--2022 (425 matches), test on season 2023/24
@@ -506,6 +604,7 @@
 
 %% ── Tuning protocol explained ──────────────────────────────────
 \begin{frame}{Modeling — How we tune: \texttt{RandomizedSearchCV} + \texttt{TimeSeriesSplit}}
+\presenterphoto{ava_ml}
   \footnotesize Every model in this deck is tuned with the same protocol —
   designed to pick hyperparameters \textbf{without ever peeking at the future}.
 
@@ -551,6 +650,7 @@
 
 %% ── Modeling results plot ──────────────────────────────────────
 \begin{frame}{Modeling — Results}
+\presenterphoto{sam_ml}
   \begin{columns}[T]
     \column{0.58\textwidth}
     \includegraphics[width=\linewidth]{../outputs/models_tree/logloss_comparison.png}
@@ -589,6 +689,7 @@
 
 %% ── Feature importance ─────────────────────────────────────────
 \begin{frame}{Modeling — Feature Importance (XGBoost, full regime)}
+\presenterphoto{sam_ml}
   \begin{columns}[T]
     \column{0.58\textwidth}
     \includegraphics[width=\linewidth]{../outputs/models_tree/importance_c_player_xgboost.png}
@@ -615,6 +716,7 @@
 
 %% ── Modeling takeaways ─────────────────────────────────────────
 \begin{frame}{Modeling — What changed vs Logistic Regression}
+\presenterphoto{sam_ml}
   \begin{block}{1. Tree models flip the feature-regime story}
     \footnotesize Logistic regression \emph{got worse} as features were added
     (1.06 $\to$ 1.14 $\to$ 1.22): multicollinearity and curse of
@@ -636,6 +738,7 @@
 
 %% ── Other models comparison ────────────────────────────────────
 \begin{frame}{Other Models — Linear, Polynomial, KNN, Decision Tree}
+\presenterphoto{ava_ml}
   \footnotesize Same protocol, same temporal holdout, same 3 regimes.
   We tested four additional model families to see whether the choice of
   algorithm actually matters at our sample size.
@@ -680,6 +783,7 @@
 
 %% ── KNN: how we chose k ────────────────────────────────────────
 \begin{frame}{KNN — Choosing $k$}
+\presenterphoto{ava_ml}
   \footnotesize $k$ was not hand-picked. The full grid
   $k \in \{5, 10, 15, 20, 30, 50\} \times$ \{uniform, distance\}
   $\times$ \{Manhattan, Euclidean\} was searched under the same
@@ -730,29 +834,26 @@
 %% ═══════════════════════════════════════════════════════════
 
 \begin{frame}{Key Findings}
-  \begin{block}{The data pipeline}
-    \scriptsize 62{,}683 FBref player-match rows across 6 seasons, joined to
-    Understat xG and Transfermarkt squad values $\rightarrow$ 73-feature,
-    1{,}653-match dataset with \textbf{zero null values} in all player rolling features.
-  \end{block}
-
-  \begin{alertblock}{Answer to the hypothesis — \textbf{Yes}}
-    \scriptsize
-    \textbf{Selection:} \texttt{net\_pl\_starter\_mins} (rank~9) and
-    \texttt{net\_pl\_pct\_fw} (rank~11) survive all four methods;
-    10 player features kept by RFECV.\\[0.15em]
-    \textbf{Independence:} player features are near-zero correlated with the
-    bookmaker signal — new information, not a repeat.\\[0.15em]
-    \textbf{Predictive lift:} adding player features
-    \emph{improves} every tree model's log-loss on a held-out 2023/24 season,
-    reversing the logistic-regression result.
-  \end{alertblock}
-
-  \begin{block}{Best model}
-    \scriptsize Ensemble of RF + XGBoost on the full player regime:
-    \textbf{log-loss 1.04}, accuracy 50.6\% — closes \textbf{$\sim$33\%}
-    of the uniform-to-Understat gap (1.10 $\to$ 0.91) using only public data.
-  \end{block}
+\presenterphoto{sam_ml}
+  \small
+  \begin{enumerate}
+    \item Player-level rolling statistics add real predictive signal beyond team form and bookmaker odds.
+    \item Feature selection backs that up: \texttt{net\_pl\_starter\_mins} and
+    \texttt{net\_pl\_pct\_fw} rank highly across all four methods, and RFECV keeps
+    10 player features in its final subset.
+    \item Tree models give the clearest proof of the player signal: as we move from
+    team-only features to the full player regime, every tree model improves, while
+    logistic regression gets worse under the extra correlation and dimensionality.
+    \item The best tree result is the RF + XGBoost ensemble on the full player regime
+    at \textbf{1.04} log-loss and 50.6\% accuracy, so ensembling still extracts a small final gain.
+    \item KNN is a useful surprise: with $k{=}50$ it ties the stronger models
+    (\textbf{1.01} in regime B, 1.02 in regime C), suggesting that averaging similar
+    past match states works well when the sample is modest and noisy.
+    \item Six different algorithms finish within about 0.03 log-loss of one another,
+    which points to an information ceiling in historical aggregate stats; even so,
+    the full pipeline is fully reproducible with only public data and closes about
+    one-third of the gap from uniform guessing to Understat's 0.91 benchmark.
+  \end{enumerate}
 \end{frame}
 
 \end{document}
