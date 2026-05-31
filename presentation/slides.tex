@@ -563,89 +563,94 @@
 \end{frame}
 
 %% ═══════════════════════════════════════════════════════════
-\section{Modeling}
+
+\section{Linear Baseline (Ava)}
 %% ═══════════════════════════════════════════════════════════
 
-\begin{frame}{Modeling — Protocol}
+%% ── Slide 1: Setup ─────────────────────────────────────────
+\begin{frame}{Linear Baseline — Setup}
 \presenterphoto{ava_ml}
-  \footnotesize Three feature regimes compared on the \textbf{same} 593-match
-  common subset (NaN-free across all three CSVs), with a strict temporal
-  holdout: train on seasons 2018--2022 (425 matches), test on season 2023/24
-  (168 matches).
-
-  \vspace{0.4em}
 
   \begin{columns}[T]
     \column{0.48\textwidth}
-    \begin{block}{Models}
+    \begin{block}{Model setup}
       \footnotesize
-      \textbf{Baseline:} Understat pre-match win probabilities.\\[0.25em]
-      \textbf{Linear:} multinomial logistic regression (scaled, $C=1$).\\[0.25em]
-      \textbf{Trees:} Random Forest, XGBoost,
-      and a 50/50 \textbf{ensemble} of the two.
+      \textbf{Algorithm:} multinomial logistic regression (softmax output) \\[0.25em]
+      \textbf{Library:} \texttt{sklearn.linear\_model.LogisticRegression} \\[0.25em]
+      \textbf{Hyperparameters:} $C{=}1.0$ (default L2), \texttt{solver=lbfgs}, \texttt{max\_iter=1000} \\[0.25em]
+      \textbf{Scaling:} \texttt{StandardScaler} fit on \emph{train only}
     \end{block}
-
     \column{0.48\textwidth}
-    \begin{block}{Tuning \& calibration}
+    \begin{block}{Protocol}
       \footnotesize
-      \textbf{Search:} \texttt{RandomizedSearchCV} (100 configs) over
-      \texttt{TimeSeriesSplit(5)}, scored by log-loss.\\[0.25em]
-      \textbf{Imbalance:} class weights (RF) / sample weights (XGB)
-      to handle rare draws.\\[0.25em]
-      \textbf{Calibration:} isotonic via
-      \texttt{CalibratedClassifierCV} on a temporal inner split.
+      \textbf{Split:} train 2018--2022 / test 2023/24 \\[0.25em]
+      \textbf{Common subset:} 593 matches with complete data across all 3 CSVs \\[0.25em]
+      \textbf{Understat excluded} from features (used as external baseline only) \\[0.25em]
+      \textbf{3 regimes:} team (29) / +FBref (50) / +player (76)
     \end{block}
   \end{columns}
-
-  \vspace{0.3em}
-  \footnotesize\textit{Metrics: log-loss (primary, lower is better),
-  Brier, accuracy. Uniform reference = 1.099, Understat baseline = 0.910.}
+  \vspace{0.4em}
+  \begin{alertblock}{\small Why exclude Understat from the features?}
+    \footnotesize Including the baseline as a model input would be \alert{circular} ---
+    we'd partly be measuring what Understat already knows, not what our engineered features add.
+  \end{alertblock}
 \end{frame}
 
-%% ── Tuning protocol explained ──────────────────────────────────
-\begin{frame}{Modeling — How we tune: \texttt{RandomizedSearchCV} + \texttt{TimeSeriesSplit}}
+%% ── Slide 2: Results ───────────────────────────────
+\begin{frame}[t,shrink=15]{Linear Baseline — Results}
 \presenterphoto{ava_ml}
-  \footnotesize Every model in this deck is tuned with the same protocol —
-  designed to pick hyperparameters \textbf{without ever peeking at the future}.
+  \scriptsize Test results on the held-out 2023/24 season (168 matches).
+  \vspace{0.2em}
+  \begin{columns}[T]
+    \column{0.55\textwidth}
+    \includegraphics[width=\linewidth]{ava_logloss_chart.png}
+    \column{0.42\textwidth}
+    \begin{block}{Log-loss by regime}
+      \scriptsize
+      \setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.0}
+      \begin{tabular}{lc}
+        \toprule
+        Regime & Log-loss \\
+        \midrule
+        A: team (29)        & \textbf{1.06} \\
+        B: +FBref (50)      & 1.14 \\
+        \alert{C: +player (76)} & \alert{\textbf{1.22}} \\
+        \midrule
+        Uniform reference   & 1.099 \\
+        Understat baseline  & \textbf{0.910} \\
+        \bottomrule
+      \end{tabular}
+    \end{block}
+    \vspace{0.2em}
+    \scriptsize Brier (A): 0.62 $\cdot$ Acc.\ (A): 49.2\%
+  \end{columns}
+  \vspace{0.2em}
+  \begin{alertblock}{\scriptsize Log-loss \emph{increases} with more features --- the central diagnostic of the project.}
+  \end{alertblock}
+\end{frame}
 
-  \vspace{0.5em}
+
+%% ── Slide 3: Limits & Diagnostic ───────────────────────────────
+\begin{frame}[t,shrink=8]{Linear Baseline — Limits \& Diagnostic}
+\presenterphoto{ava_ml}
+  \scriptsize \textbf{Why did adding features hurt?} Two compounding problems explain it.
+  \vspace{0.3em}
   \begin{columns}[T]
     \column{0.48\textwidth}
-    \begin{block}{\texttt{TimeSeriesSplit(5)} — fair scoring}
-      \scriptsize Standard cross-validation shuffles rows randomly, which
-      would let the model "see" May 2024 to predict November 2023.
-
-      \vspace{0.3em}
-      \texttt{TimeSeriesSplit} keeps the validation window strictly
-      \emph{after} the training window:
-      \begin{itemize}\setlength\itemsep{0pt}
-        \item Fold 1: train [1--85] $\to$ validate [86--170]
-        \item Fold 2: train [1--170] $\to$ validate [171--255]
-        \item \ldots (5 folds total)
-      \end{itemize}
-     
+    \begin{block}{1. Multicollinearity}
+      \scriptsize Team-level and player-level features measure overlapping things (a team's xG is essentially a function of its players' xG). Linear models cannot decide where to attribute the weight --- the optimisation has multiple equivalent solutions, leading to \alert{unstable coefficients}.
     \end{block}
-
     \column{0.48\textwidth}
-    \begin{block}{\texttt{RandomizedSearchCV} — efficient knob search}
-      \scriptsize Models have hyperparameters (k, max\_depth, learning\_rate\ldots).
-      XGBoost alone has $\sim$17{,}000 combinations on our grid — too many
-      to try exhaustively.
-
-      \vspace{0.3em}
-      \texttt{RandomizedSearchCV} samples \texttt{n\_iter} random configs
-      (we used 30--100), scores each across the 5 time-respecting folds,
-      and refits the winner on the full training set.
-
-      \vspace{0.3em}
-      \textbf{Total work per model:} 30 configs $\times$ 5 folds $=$
-      150 fits, all leak-free, then 1 final refit on the held-out test season.
+    \begin{block}{2. Curse of dimensionality}
+      \scriptsize Only \alert{417 training matches} against up to \alert{76 features} --- a samples-to-features ratio of $\sim$5.5. Rule of thumb: linear models need 10--20$\times$ more samples than features. Below that, they \textbf{overfit the noise} rather than learn the signal.
     \end{block}
   \end{columns}
-
   \vspace{0.3em}
-  \footnotesize\textit{In one line: try many knob settings, score each on
-  five rolling-window forecasts that never see the future, keep the best.}
+  \begin{block}{This negative result is what motivated the tree models}
+    \scriptsize Tree-based models handle correlated features natively --- each split uses only one feature at a time, so they're \emph{locally low-dimensional}. \textbf{Tree models flip the trend} (RF: 1.26 $\to$ 1.06 $\to$ 1.05). Same data, same protocol, opposite outcome --- which Samuel will detail next.
+  \end{block}
+  \vspace{0.2em}
+  \scriptsize\textit{\textbf{Lesson:} model class matters more than feature count. The player-level signal exists --- but linear models cannot surface it.}
 \end{frame}
 
 %% ── Modeling results plot ──────────────────────────────────────
@@ -738,7 +743,7 @@
 
 %% ── Other models comparison ────────────────────────────────────
 \begin{frame}{Other Models — Linear, Polynomial, KNN, Decision Tree}
-\presenterphoto{ava_ml}
+
   \footnotesize Same protocol, same temporal holdout, same 3 regimes.
   We tested four additional model families to see whether the choice of
   algorithm actually matters at our sample size.
@@ -783,7 +788,7 @@
 
 %% ── KNN: how we chose k ────────────────────────────────────────
 \begin{frame}{KNN — Choosing $k$}
-\presenterphoto{ava_ml}
+
   \footnotesize $k$ was not hand-picked. The full grid
   $k \in \{5, 10, 15, 20, 30, 50\} \times$ \{uniform, distance\}
   $\times$ \{Manhattan, Euclidean\} was searched under the same
