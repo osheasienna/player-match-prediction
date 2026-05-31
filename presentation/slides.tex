@@ -522,6 +522,61 @@
   \scriptsize\textit{\textbf{Lesson:} model class matters more than feature count. The player-level signal exists --- but linear models cannot surface it.}
 \end{frame}
 
+%% ═══════════════════════════════════════════════════════════
+%% ── Slide 1 (Sam): Hyperparameters & Tuning ──────────────────────
+%% ═══════════════════════════════════════════════════════════
+\begin{frame}[t,shrink=10]{Modeling — Hyperparameters \& Tuning}
+\presenterphoto{sam_ml}
+  \footnotesize
+  Every model is tuned with \textbf{\texttt{RandomizedSearchCV}} (random configs drawn
+  from each grid below), scored by \textbf{log-loss} (\texttt{neg\_log\_loss}), not
+  accuracy. Cross-validation uses \textbf{\texttt{TimeSeriesSplit} (5 folds)} so the
+  validation fold is always \alert{later in time} than the training fold --- data is never
+  shuffled across the time boundary. Draw imbalance is handled with \textbf{balanced class
+  weights} (RF) / \textbf{sample weights} (XGB); the best estimator is then
+  \textbf{isotonic-calibrated} (\texttt{CalibratedClassifierCV}, temporal inner split)
+  before the 50/50 RF\,+\,XGB ensemble.
+
+  \vspace{0.4em}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+    \begin{block}{Random Forest — search grid}
+      \scriptsize
+      \setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.05}
+      \begin{tabular}{ll}
+        \texttt{n\_estimators}     & 200 / 400 / 600 / 800 \\
+        \texttt{max\_depth}        & 3 / 5 / 7 / 10 / None \\
+        \texttt{min\_samples\_leaf}  & 1 / 2 / 4 / 8 \\
+        \texttt{min\_samples\_split} & 2 / 5 / 10 \\
+        \texttt{max\_features}     & sqrt / log2 / 0.5 \\
+      \end{tabular}
+    \end{block}
+
+    \column{0.49\textwidth}
+    \begin{block}{XGBoost — search grid}
+      \scriptsize
+      \setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.05}
+      \begin{tabular}{ll}
+        \texttt{n\_estimators}     & 200 / 400 / 600 / 800 \\
+        \texttt{max\_depth}        & 3 / 4 / 5 / 6 / 8 \\
+        \texttt{learning\_rate}    & 0.01 / 0.03 / 0.05 / 0.1 \\
+        \texttt{subsample}         & 0.6 / 0.8 / 1.0 \\
+        \texttt{colsample\_bytree} & 0.6 / 0.8 / 1.0 \\
+        \texttt{min\_child\_weight}  & 1 / 3 / 5 \quad\texttt{reg\_lambda} 0.5--5 \\
+      \end{tabular}
+    \end{block}
+  \end{columns}
+
+  \vspace{0.4em}
+  \begin{alertblock}{\scriptsize Choosing $k$ for KNN (same protocol)}
+    \scriptsize Grid $k \in \{5,10,15,20,30,50\} \times$ \{uniform, distance\} $\times$
+    \{Manhattan, Euclidean\}, scored by log-loss under \texttt{TimeSeriesSplit(5)}.
+    Floor $k{=}5$ (smaller gives degenerate probabilities); ceiling $k{=}50$ (smallest
+    CV fold is $\sim$75 rows). All three regimes independently picked
+    \textbf{$k{=}50$, distance-weighted}.
+  \end{alertblock}
+\end{frame}
+
 %% ── Modeling results plot ──────────────────────────────────────
 \begin{frame}{Modeling — Results}
 \presenterphoto{sam_ml}
@@ -568,56 +623,36 @@
     \column{0.58\textwidth}
     \includegraphics[width=\linewidth]{../outputs/models_tree/importance_c_player_xgboost.png}
 
-    \column{0.40\textwidth}
+       \column{0.40\textwidth}
     \footnotesize\textbf{How to read:} mean importance over the calibration
     folds for the best XGBoost on the full player regime.
 
     \vspace{0.6em}
-    \textbf{Team-level form} (rolling xG, market value) sits at the top,
-    as expected.
+    \textbf{Team-level and squad-level features} (squad age, squad value,
+    market-value ratios) sit at the top, as expected.
 
     \vspace{0.6em}
     \textcolor{playercol}{\textbf{Player-level features}}
-    (\texttt{starter\_mins}, \texttt{pct\_fw}, depth gaps) appear
-    repeatedly in the top ranks — they are not just noise the model
-    tolerates, they are signal the model actively uses.
+    also enter the top ranks, especially
+    \texttt{net\_pl\_starter\_mins}, \texttt{away\_pl\_starter\_mins},
+    They are not just noise the model tolerates, but signals it actively uses.
 
     \vspace{0.6em}
-    Consistent with the feature-selection leaderboard
-    (\texttt{net\_pl\_starter\_mins} rank~9, \texttt{net\_pl\_pct\_fw} rank~11).
+    This is consistent with the feature-selection results.
   \end{columns}
 \end{frame}
 
-%% ── Modeling takeaways ─────────────────────────────────────────
-\begin{frame}{Modeling — What changed vs Logistic Regression}
+
+
+%% ═══════════════════════════════════════════════════════════
+%% ── Slide 4: Other Models ──────────────────────────────────
+%% ═══════════════════════════════════════════════════════════
+\begin{frame}[t,shrink=6]{Modeling — Other Models}
 \presenterphoto{sam_ml}
-  \begin{block}{1. Tree models flip the feature-regime story}
-    \footnotesize Logistic regression \emph{got worse} as features were added
-    (1.06 $\to$ 1.14 $\to$ 1.22): multicollinearity and curse of
-    dimensionality.  Tree models \emph{improve} with more features
-    (RF: 1.26 $\to$ 1.06 $\to$ 1.05) — they handle correlated inputs natively.
-  \end{block}
+  \footnotesize Same protocol, same temporal holdout, same 3 regimes — four more
+  model families, to test whether the algorithm matters at our sample size.
 
-  \begin{block}{2. Player features add real signal}
-    \footnotesize The full player regime (C) is the best for every tree model.
-    Confirms the project hypothesis: player-level rolling stats add
-    predictive power once the model can use them.
-  \end{block}
-
-  \begin{block}{3. Ensembling extracts a final gain}
-    \footnotesize RF and XGB make different mistakes; averaging their
-    calibrated probabilities beats either alone (1.04 vs 1.05/1.05 in regime C).
-  \end{block}
-\end{frame}
-
-%% ── Other models comparison ────────────────────────────────────
-\begin{frame}{Other Models — Linear, Polynomial, KNN, Decision Tree}
-
-  \footnotesize Same protocol, same temporal holdout, same 3 regimes.
-  We tested four additional model families to see whether the choice of
-  algorithm actually matters at our sample size.
-
-  \vspace{0.4em}
+  \vspace{0.3em}
   \begin{columns}[T]
     \column{0.55\textwidth}
     \includegraphics[width=\linewidth]{../outputs/other_models/logloss_comparison.png}
@@ -647,61 +682,19 @@
 
   \vspace{0.3em}
   \footnotesize\textbf{Per-model takeaways:}
-  \textbf{Polynomial} overfits as features grow ($d{=}2$ explodes to
-  $400^+$ inputs);
-  \textbf{Ridge/Lasso} match each other — regularisation type doesn't matter much here;
-  \textbf{KNN} surprises by tying the tree ensemble (small dataset $\to$ simple wins);
-  \textbf{Decision Tree} confirms the value of bagging/boosting — a single
-  unregularised tree is the worst model in every regime.
+  \textbf{Polynomial} overfits as features grow ($d{=}2$ explodes to $400^+$ inputs);
+  \textbf{Ridge/Lasso} match each other — regularisation type barely matters here;
+  \textbf{KNN} ties the tree ensemble (small dataset $\to$ simple wins);
+  \textbf{Decision Tree} is worst in every regime — confirming the value of bagging/boosting.
+
+  \vspace{0.2em}
+  \footnotesize\textit{\textbf{Why this differs from Logistic Regression:} LR \emph{worsened}
+  as features were added (1.06 $\to$ 1.14 $\to$ 1.22) under multicollinearity and the
+  curse of dimensionality; trees and regularised / instance-based models instead hold or
+  \alert{improve} with the extra player features — they handle correlated inputs natively.}
 \end{frame}
 
-%% ── KNN: how we chose k ────────────────────────────────────────
-\begin{frame}{KNN — Choosing $k$}
 
-  \footnotesize $k$ was not hand-picked. The full grid
-  $k \in \{5, 10, 15, 20, 30, 50\} \times$ \{uniform, distance\}
-  $\times$ \{Manhattan, Euclidean\} was searched under the same
-  \texttt{TimeSeriesSplit(5)} protocol and the lowest-log-loss
-  combination was kept.
-
-  \vspace{0.4em}
-  \begin{columns}[T]
-    \column{0.5\textwidth}
-    \begin{block}{Why those bounds?}
-      \scriptsize
-      \textbf{MIN $k=5$:} smaller $k$ gives degenerate probabilities
-      (denominators of 2--3 only output $\{0, 0.33, 0.5, 0.66, 1\}$)
-      — log-loss punishes that hard.\\[0.3em]
-      \textbf{MAX $k=50$:} the smallest CV training fold is $\sim$75 rows;
-      sklearn requires $k \le$ fold size. We initially tried $k=100$
-      and got runtime warnings, so we capped at 50.
-    \end{block}
-
-    \column{0.48\textwidth}
-    \begin{block}{Winners (per regime)}
-      \scriptsize
-      \setlength{\tabcolsep}{4pt}
-      \begin{tabular}{lcc}
-        Regime & $k$ & metric \\
-        \hline
-        A: team   & 50 & Euclidean ($p{=}2$) \\
-        B: +FBref & 50 & Manhattan ($p{=}1$) \\
-        C: +player& 50 & Manhattan ($p{=}1$) \\
-      \end{tabular}\\[0.4em]
-      All three regimes \textbf{independently} picked $k=50$ with
-      distance-weighting. The Minkowski exponent drifted from
-      $p{=}2$ to $p{=}1$ as features grew — consistent with the
-      textbook result that L1 is more robust in higher dimensions.
-    \end{block}
-  \end{columns}
-
-  \vspace{0.4em}
-  \footnotesize\textbf{Why $k=50$ makes domain sense:} distance-weighting
-  means the closest 5--10 historical matchups still drive the
-  prediction; the further 40 just provide a regularising prior.
-  Football is noisy, so averaging $\sim$12\% of the historical sample
-  smooths randomness without washing out the matchup-specific signal.
-\end{frame}
 
 %% ═══════════════════════════════════════════════════════════
 \section{Key Findings}
@@ -709,25 +702,36 @@
 
 \begin{frame}{Key Findings}
 \presenterphoto{sam_ml}
-  \small
-  \begin{enumerate}
-    \item Player-level rolling statistics add real predictive signal beyond team form and bookmaker odds.
-    \item Feature selection backs that up: \texttt{net\_pl\_starter\_mins} and
-    \texttt{net\_pl\_pct\_fw} rank highly across all four methods, and RFECV keeps
-    10 player features in its final subset.
-    \item Tree models give the clearest proof of the player signal: as we move from
-    team-only features to the full player regime, every tree model improves, while
-    logistic regression gets worse under the extra correlation and dimensionality.
-    \item The best tree result is the RF + XGBoost ensemble on the full player regime
-    at \textbf{1.04} log-loss and 50.6\% accuracy, so ensembling still extracts a small final gain.
-    \item KNN is a useful surprise: with $k{=}50$ it ties the stronger models
-    (\textbf{1.01} in regime B, 1.02 in regime C), suggesting that averaging similar
-    past match states works well when the sample is modest and noisy.
-    \item Six different algorithms finish within about 0.03 log-loss of one another,
-    which points to an information ceiling in historical aggregate stats; even so,
-    the full pipeline is fully reproducible with only public data and closes about
-    one-third of the gap from uniform guessing to Understat's 0.91 benchmark.
-  \end{enumerate}
-\end{frame}
 
+\vspace{-0.25em}
+
+{\scriptsize
+\setlength{\parskip}{0pt}
+\setlength{\itemsep}{0.25em}
+\renewcommand{\baselinestretch}{0.92}\selectfont
+
+\begin{enumerate}
+  \item Player-level rolling statistics add real predictive signal beyond team form and bookmaker odds.
+
+  \item Feature selection backs that up: \texttt{net\_pl\_starter\_mins} and
+  \texttt{net\_pl\_pct\_fw} rank highly across all four methods, and RFECV keeps
+  10 player features in its final subset.
+
+  \item Tree models give the clearest proof of the player signal: as we move from
+  team-only features to the full player regime, every tree model improves, while
+  logistic regression gets worse under the extra correlation and dimensionality.
+
+  \item The best tree result is the RF + XGBoost ensemble on the full player regime
+  at \textbf{1.04} log-loss and 50.6\% accuracy, so ensembling still extracts a small final gain.
+
+  \item KNN is a useful surprise: with $k{=}50$ it ties the stronger models
+  (\textbf{1.01} in regime B, 1.02 in regime C), suggesting that averaging similar
+  past match states works well when the sample is modest and noisy.
+
+  \item The full pipeline is fully reproducible with only public data and closes about
+  one-third of the gap from uniform guessing to Understat's 0.91 benchmark.
+\end{enumerate}
+}
+
+\end{frame}
 \end{document}

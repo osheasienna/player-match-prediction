@@ -1,0 +1,71 @@
+%%-- Other slides just in case--
+%% ── Extra slides (will delete after) ─────────────────────────────────────────
+\begin{frame}{Modeling — What changed vs Logistic Regression}
+\presenterphoto{sam_ml}
+  \begin{block}{1. Tree models flip the feature-regime story}
+    \footnotesize Logistic regression \emph{got worse} as features were added
+    (1.06 $\to$ 1.14 $\to$ 1.22): multicollinearity and curse of
+    dimensionality.  Tree models \emph{improve} with more features
+    (RF: 1.26 $\to$ 1.06 $\to$ 1.05) — they handle correlated inputs natively.
+  \end{block}
+
+  \begin{block}{2. Player features add real signal}
+    \footnotesize The full player regime (C) is the best for every tree model.
+    Confirms the project hypothesis: player-level rolling stats add
+    predictive power once the model can use them.
+  \end{block}
+
+  \begin{block}{3. Ensembling extracts a final gain}
+    \footnotesize RF and XGB make different mistakes; averaging their
+    calibrated probabilities beats either alone (1.04 vs 1.05/1.05 in regime C).
+  \end{block}
+\end{frame}
+
+
+%% ── KNN: how we chose k (extra slides to answer questions) ────────────────────────────────────────
+\begin{frame}{KNN — Choosing $k$}
+
+  \footnotesize $k$ was not hand-picked. The full grid
+  $k \in \{5, 10, 15, 20, 30, 50\} \times$ \{uniform, distance\}
+  $\times$ \{Manhattan, Euclidean\} was searched under the same
+  \texttt{TimeSeriesSplit(5)} protocol and the lowest-log-loss
+  combination was kept.
+
+  \vspace{0.4em}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    \begin{block}{Why those bounds?}
+      \scriptsize
+      \textbf{MIN $k=5$:} smaller $k$ gives degenerate probabilities
+      (denominators of 2--3 only output $\{0, 0.33, 0.5, 0.66, 1\}$)
+      — log-loss punishes that hard.\\[0.3em]
+      \textbf{MAX $k=50$:} the smallest CV training fold is $\sim$75 rows;
+      sklearn requires $k \le$ fold size. We initially tried $k=100$
+      and got runtime warnings, so we capped at 50.
+    \end{block}
+
+    \column{0.48\textwidth}
+    \begin{block}{Winners (per regime)}
+      \scriptsize
+      \setlength{\tabcolsep}{4pt}
+      \begin{tabular}{lcc}
+        Regime & $k$ & metric \\
+        \hline
+        A: team   & 50 & Euclidean ($p{=}2$) \\
+        B: +FBref & 50 & Manhattan ($p{=}1$) \\
+        C: +player& 50 & Manhattan ($p{=}1$) \\
+      \end{tabular}\\[0.4em]
+      All three regimes \textbf{independently} picked $k=50$ with
+      distance-weighting. The Minkowski exponent drifted from
+      $p{=}2$ to $p{=}1$ as features grew — consistent with the
+      textbook result that L1 is more robust in higher dimensions.
+    \end{block}
+  \end{columns}
+
+  \vspace{0.4em}
+  \footnotesize\textbf{Why $k=50$ makes domain sense:} distance-weighting
+  means the closest 5--10 historical matchups still drive the
+  prediction; the further 40 just provide a regularising prior.
+  Football is noisy, so averaging $\sim$12\% of the historical sample
+  smooths randomness without washing out the matchup-specific signal.
+\end{frame}
