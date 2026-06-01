@@ -51,15 +51,13 @@
 \headcommand {\beamer@framepages {18}{18}}
 \headcommand {\slideentry {5}{0}{7}{19/19}{}{0}}
 \headcommand {\beamer@framepages {19}{19}}
-\headcommand {\slideentry {5}{0}{8}{20/20}{}{0}}
+\headcommand {\beamer@sectionpages {13}{19}}
+\headcommand {\beamer@subsectionpages {13}{19}}
+\headcommand {\sectionentry {6}{Key Findings}{20}{Key Findings}{0}}
+\headcommand {\slideentry {6}{0}{1}{20/20}{}{0}}
 \headcommand {\beamer@framepages {20}{20}}
-\headcommand {\beamer@sectionpages {13}{20}}
-\headcommand {\beamer@subsectionpages {13}{20}}
-\headcommand {\sectionentry {6}{Key Findings}{21}{Key Findings}{0}}
-\headcommand {\slideentry {6}{0}{1}{21/21}{}{0}}
-\headcommand {\beamer@framepages {21}{21}}
-\headcommand {\beamer@partpages {1}{21}}
-\headcommand {\beamer@subsectionpages {21}{21}}
-\headcommand {\beamer@sectionpages {21}{21}}
-\headcommand {\beamer@documentpages {21}}
-\headcommand {\gdef \inserttotalframenumber {21}}
+\headcommand {\beamer@partpages {1}{20}}
+\headcommand {\beamer@subsectionpages {20}{20}}
+\headcommand {\beamer@sectionpages {20}{20}}
+\headcommand {\beamer@documentpages {20}}
+\headcommand {\gdef \inserttotalframenumber {20}}
