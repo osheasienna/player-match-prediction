@@ -540,6 +540,7 @@ INPUT ./sam_ml.jpg
 INPUT ./sam_ml.jpg
 INPUT ./sam_ml.jpg
 INPUT ./sam_ml.jpg
+INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/cm/cmssbx10.tfm
 OUTPUT slides.nav
 OUTPUT slides.toc
 OUTPUT slides.snm
