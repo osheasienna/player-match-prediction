@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.3)  31 MAY 2026 14:53
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.3)  1 JUN 2026 08:31
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -831,14 +831,14 @@ Package pdftex.def Info: sienna_ml.jpg  used on input line 219.
 [5
 
 ]
-<../outputs/eda/03_missingness.png, id=186, 714.0276pt x 352.1958pt>
+<../outputs/eda/03_missingness.png, id=187, 714.0276pt x 352.1958pt>
 File: ../outputs/eda/03_missingness.png Graphic file (type png)
 <use ../outputs/eda/03_missingness.png>
 Package pdftex.def Info: ../outputs/eda/03_missingness.png  used on input line 258.
 (pdftex.def)             Requested size: 288.32527pt x 142.21935pt.
 
 
-<ioana_ml.jpg, id=189, 319.1925pt x 366.36874pt>
+<ioana_ml.jpg, id=190, 319.1925pt x 366.36874pt>
 File: ioana_ml.jpg Graphic file (type jpg)
 <use ioana_ml.jpg>
 Package pdftex.def Info: ioana_ml.jpg  used on input line 258.
@@ -862,7 +862,7 @@ Package pdftex.def Info: ioana_ml.jpg  used on input line 358.
 [8
 
 ]
-<../outputs/eda/12_feature_leaderboard_summary.png, id=275, 1292.6694pt x 712.5822pt>
+<../outputs/eda/12_feature_leaderboard_summary.png, id=276, 1292.6694pt x 712.5822pt>
 File: ../outputs/eda/12_feature_leaderboard_summary.png Graphic file (type png)
 <use ../outputs/eda/12_feature_leaderboard_summary.png>
 Package pdftex.def Info: ../outputs/eda/12_feature_leaderboard_summary.png  used on input line 371.
@@ -876,7 +876,7 @@ Package pdftex.def Info: ioana_ml.jpg  used on input line 371.
 [9
 
  <../outputs/eda/12_feature_leaderboard_summary.png>]
-<../outputs/eda/04_histograms_by_result.png, id=285, 1445.4pt x 1248.8256pt>
+<../outputs/eda/04_histograms_by_result.png, id=286, 1445.4pt x 1248.8256pt>
 File: ../outputs/eda/04_histograms_by_result.png Graphic file (type png)
 <use ../outputs/eda/04_histograms_by_result.png>
 Package pdftex.def Info: ../outputs/eda/04_histograms_by_result.png  used on input line 397.
@@ -890,7 +890,7 @@ Package pdftex.def Info: ioana_ml.jpg  used on input line 397.
 [10
 
  <../outputs/eda/04_histograms_by_result.png>]
-<../outputs/eda/08_player_features_vs_bookmaker.png, id=294, 1149.093pt x 724.6272pt>
+<../outputs/eda/08_player_features_vs_bookmaker.png, id=295, 1149.093pt x 724.6272pt>
 File: ../outputs/eda/08_player_features_vs_bookmaker.png Graphic file (type png)
 <use ../outputs/eda/08_player_features_vs_bookmaker.png>
 Package pdftex.def Info: ../outputs/eda/08_player_features_vs_bookmaker.png  used on input line 409.
@@ -904,7 +904,7 @@ Package pdftex.def Info: ioana_ml.jpg  used on input line 409.
 [11
 
  <../outputs/eda/08_player_features_vs_bookmaker.png>]
-<../outputs/eda/14_top15_correlation_heatmap.png, id=303, 859.0494pt x 714.0276pt>
+<../outputs/eda/14_top15_correlation_heatmap.png, id=304, 859.0494pt x 714.0276pt>
 File: ../outputs/eda/14_top15_correlation_heatmap.png Graphic file (type png)
 <use ../outputs/eda/14_top15_correlation_heatmap.png>
 Package pdftex.def Info: ../outputs/eda/14_top15_correlation_heatmap.png  used on input line 432.
@@ -1092,9 +1092,9 @@ Here is how much of TeX's memory you used:
  51974 multiletter control sequences out of 15000+600000
  575272 words of font info for 97 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 101i,15n,107p,431b,974s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 101i,15n,107p,431b,973s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/admin/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/tcss1095.600pk></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/fontawesome5/FontAwesome5Free-Solid.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmss17.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi17.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi8.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on slides.pdf (21 pages, 1752674 bytes).
+Output written on slides.pdf (21 pages, 1752887 bytes).
 PDF statistics:
  640 PDF objects out of 1000 (max. 8388607)
  371 compressed objects within 4 object streams

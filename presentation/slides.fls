@@ -396,11 +396,12 @@ INPUT /usr/local/texlive/2025basic/texmf-dist/tex/latex/fontawesome5/ufontawesom
 INPUT /usr/local/texlive/2025basic/texmf-dist/tex/latex/fontawesome5/ufontawesomefree0.fd
 INPUT /usr/local/texlive/2025basic/texmf-dist/tex/latex/fontawesome5/ufontawesomefree0.fd
 INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/fontawesome5/fa5free0solid.tfm
+INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/cm/cmss10.tfm
+INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm
 INPUT ./sienna_ml.jpg
 INPUT ./sienna_ml.jpg
 INPUT ./sienna_ml.jpg
 INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/enc/dvips/fontawesome5/fa5free0.enc
-INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/cm/cmss10.tfm
 INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/cm/cmss8.tfm
 INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/cm/cmss8.tfm
 INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm
@@ -493,7 +494,6 @@ INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm
 INPUT ./ioana_ml.jpg
 INPUT ./ioana_ml.jpg
 INPUT ./ioana_ml.jpg
-INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm
 INPUT ./ava_ml.jpg
 INPUT ./ava_ml.jpg
 INPUT ./ava_ml.jpg

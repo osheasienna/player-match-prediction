@@ -171,7 +171,7 @@
     \column{0.32\textwidth}
     \begin{block}{\textcolor{fbrefcol}{\faDatabase}\; Transfermarkt}
       \small
-      Squad market values and average player age --- a proxy for squad quality\\[0.3em]
+      Squad market values and average player age – an estimate for squad quality\\[0.3em]
       174 team-seasons\\[0.3em]
       Seasons 2018--2023
     \end{block}
@@ -179,8 +179,8 @@
   \end{columns}
 
   \vspace{0.5em}
-  \small FBref scraped via script; Understat via its public API;
-  Transfermarkt from an open-source data repository.
+  \footnotesize FBref data was collected via \texttt{soccerdata}; Understat via \texttt{understat};
+  Transfermarkt from an open-source GitHub repository.
 \end{frame}
 
 \begin{frame}[t]{Pipeline \& Dataset}
@@ -460,7 +460,7 @@
   \end{columns}
   \vspace{0.4em}
   \begin{alertblock}{\small Why exclude Understat from the features?}
-    \footnotesize Including the baseline as a model input would be \alert{circular} ---
+    \footnotesize Including the baseline as a model input would be \alert{circular} –
     we'd partly be measuring what Understat already knows, not what our engineered features add.
   \end{alertblock}
 \end{frame}
@@ -494,7 +494,7 @@
     \scriptsize Brier (A): 0.62 $\cdot$ Acc.\ (A): 49.2\%
   \end{columns}
   \vspace{0.2em}
-  \begin{alertblock}{\scriptsize Log-loss \emph{increases} with more features --- the central diagnostic of the project.}
+  \begin{alertblock}{\scriptsize Log-loss \emph{increases} with more features – the central diagnostic of the project.}
   \end{alertblock}
 \end{frame}
 
@@ -507,19 +507,19 @@
   \begin{columns}[T]
     \column{0.48\textwidth}
     \begin{block}{1. Multicollinearity}
-      \scriptsize Team-level and player-level features measure overlapping things (a team's xG is essentially a function of its players' xG). Linear models cannot decide where to attribute the weight --- the optimisation has multiple equivalent solutions, leading to \alert{unstable coefficients}.
+      \scriptsize Team-level and player-level features measure overlapping things (a team's xG is essentially a function of its players' xG). Linear models cannot decide where to attribute the weight – the optimisation has multiple equivalent solutions, leading to \alert{unstable coefficients}.
     \end{block}
     \column{0.48\textwidth}
     \begin{block}{2. Curse of dimensionality}
-      \scriptsize Only \alert{417 training matches} against up to \alert{76 features} --- a samples-to-features ratio of $\sim$5.5. Rule of thumb: linear models need 10--20$\times$ more samples than features. Below that, they \textbf{overfit the noise} rather than learn the signal.
+      \scriptsize Only \alert{417 training matches} against up to \alert{76 features} – a samples-to-features ratio of $\sim$5.5. Rule of thumb: linear models need 10--20$\times$ more samples than features. Below that, they \textbf{overfit the noise} rather than learn the signal.
     \end{block}
   \end{columns}
   \vspace{0.3em}
   \begin{block}{This negative result is what motivated the tree models}
-    \scriptsize Tree-based models handle correlated features natively --- each split uses only one feature at a time, so they're \emph{locally low-dimensional}. \textbf{Tree models flip the trend} (RF: 1.26 $\to$ 1.06 $\to$ 1.05). Same data, same protocol, opposite outcome --- which Samuel will detail next.
+    \scriptsize Tree-based models handle correlated features natively – each split uses only one feature at a time, so they're \emph{locally low-dimensional}. \textbf{Tree models flip the trend} (RF: 1.26 $\to$ 1.06 $\to$ 1.05). Same data, same protocol, opposite outcome – which Samuel will detail next.
   \end{block}
   \vspace{0.2em}
-  \scriptsize\textit{\textbf{Lesson:} model class matters more than feature count. The player-level signal exists --- but linear models cannot surface it.}
+  \scriptsize\textit{\textbf{Lesson:} model class matters more than feature count. The player-level signal exists – but linear models cannot surface it.}
 \end{frame}
 
 %% ═══════════════════════════════════════════════════════════
